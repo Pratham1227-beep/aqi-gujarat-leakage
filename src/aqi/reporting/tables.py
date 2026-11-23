@@ -31,6 +31,10 @@ def generate_table1_qual(out_dir: Path) -> None:
         label="tab:city_qualification",
         column_format="lcccccc",
     )
+    # Fit cleanly to page width
+    tex = tex.replace("\\begin{table}\n", "\\begin{table}[htbp]\n\\centering\n")
+    tex = tex.replace("\\begin{tabular}", "\\resizebox{\\linewidth}{!}{\\begin{tabular}")
+    tex = tex.replace("\\end{tabular}", "\\end{tabular}}")
     (out_dir / "table1_qual.tex").write_text(tex, encoding="utf-8")
     log.info("Wrote table1_qual.tex and .csv")
 
@@ -55,7 +59,7 @@ def generate_table2_main(df: pd.DataFrame, out_dir: Path) -> None:
             "RMSE": f"{r['rmse']:.2f}",
             "R2": f"{r['r2']:.3f}",
             "Skill": f"{r['skill']:.3f}",
-            "Band Acc (%)": f"{r['band_acc']*100:.1f}",
+            "Band Acc (\\%)": f"{r['band_acc']*100:.1f}",
             "DM p-value": dm_str,
         })
     res_df = pd.DataFrame(table_rows)
@@ -66,7 +70,11 @@ def generate_table2_main(df: pd.DataFrame, out_dir: Path) -> None:
         caption="Setup C Next-Day ($t+1$) Forecasting Benchmark vs Persistence Baseline",
         label="tab:main_benchmark_h1",
         column_format="llcccccc",
+        escape=False,
     )
+    tex = tex.replace("\\begin{table}\n", "\\begin{table}[htbp]\n\\centering\n")
+    tex = tex.replace("\\begin{tabular}", "\\resizebox{\\linewidth}{!}{\\begin{tabular}")
+    tex = tex.replace("\\end{tabular}", "\\end{tabular}}")
     (out_dir / "table2_main.tex").write_text(tex, encoding="utf-8")
     log.info("Wrote table2_main.tex and .csv")
 
@@ -79,31 +87,41 @@ def generate_table3_inflation(df: pd.DataFrame, out_dir: Path) -> None:
     ahm_c = df[(df["city"] == "ahmedabad") & (df["setup"] == "C") & (df["horizon"] == 1)].groupby("model").agg({"mae": "mean", "r2": "mean"}).reset_index()
 
     models = ["ridge", "random_forest", "xgboost"]
-    rows = []
+    lines = [
+        r"\begin{table}[htbp]",
+        r"\centering",
+        r"\resizebox{\linewidth}{!}{",
+        r"\begin{tabular}{l cccccc c}",
+        r"\toprule",
+        r" & \multicolumn{2}{c}{\textbf{Setup A (Random)}} & \multicolumn{2}{c}{\textbf{Setup B (Chrono)}} & \multicolumn{2}{c}{\textbf{Setup C (Rolling)}} & \\",
+        r"\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}",
+        r"\textbf{Model} & \textbf{MAE} & $\mathbf{R^2}$ & \textbf{MAE} & $\mathbf{R^2}$ & \textbf{MAE} & $\mathbf{R^2}$ & $\mathbf{\Delta R^2 \text{ (A$-$B)}}$ \\",
+        r"\midrule",
+    ]
     for m in models:
         r_a = ahm_a[ahm_a["model"] == m].iloc[0] if len(ahm_a[ahm_a["model"] == m]) else None
         r_b = ahm_b[ahm_b["model"] == m].iloc[0] if len(ahm_b[ahm_b["model"] == m]) else None
         r_c = ahm_c[ahm_c["model"] == m].iloc[0] if len(ahm_c[ahm_c["model"] == m]) else None
         
-        rows.append({
-            "Model": m.replace("_", " ").title(),
-            "Setup A MAE": f"{r_a['mae']:.2f}" if r_a is not None else "--",
-            "Setup A R2": f"{r_a['r2']:.3f}" if r_a is not None else "--",
-            "Setup B MAE": f"{r_b['mae']:.2f}" if r_b is not None else "--",
-            "Setup B R2": f"{r_b['r2']:.3f}" if r_b is not None else "--",
-            "Setup C MAE": f"{r_c['mae']:.2f}" if r_c is not None else "--",
-            "Setup C R2": f"{r_c['r2']:.3f}" if r_c is not None else "--",
-            "Delta R2 (A - B)": f"{(r_a['r2'] - r_b['r2']):+.3f}" if (r_a is not None and r_b is not None) else "--",
-        })
-    res_df = pd.DataFrame(rows)
-    res_df.to_csv(out_dir / "table3_inflation.csv", index=False)
-
-    tex = res_df.to_latex(
-        index=False,
-        caption="Empirical Leakage Inflation in Ahmedabad: Setup A (Random) vs Setup B (Chrono) vs Setup C (Rolling-Origin)",
-        label="tab:leakage_inflation",
-        column_format="lccccccc",
-    )
+        name = m.replace("_", " ").title()
+        mae_a = f"{r_a['mae']:.2f}" if r_a is not None else "--"
+        r2_a = f"{r_a['r2']:.3f}" if r_a is not None else "--"
+        mae_b = f"{r_b['mae']:.2f}" if r_b is not None else "--"
+        r2_b = f"{r_b['r2']:.3f}" if r_b is not None else "--"
+        mae_c = f"{r_c['mae']:.2f}" if r_c is not None else "--"
+        r2_c = f"{r_c['r2']:.3f}" if r_c is not None else "--"
+        delta = f"{(r_a['r2'] - r_b['r2']):+.3f}" if (r_a is not None and r_b is not None) else "--"
+        lines.append(f"{name} & {mae_a} & {r2_a} & {mae_b} & {r2_b} & {mae_c} & {r2_c} & {delta} \\\\")
+        
+    lines += [
+        r"\bottomrule",
+        r"\end{tabular}",
+        r"}",
+        r"\caption{Empirical Leakage Inflation in Ahmedabad: Setup A (Random) vs Setup B (Chrono) vs Setup C (Rolling-Origin)}",
+        r"\label{tab:leakage_inflation}",
+        r"\end{table}",
+    ]
+    tex = "\n".join(lines) + "\n"
     (out_dir / "table3_inflation.tex").write_text(tex, encoding="utf-8")
     log.info("Wrote table3_inflation.tex and .csv")
 
@@ -111,6 +129,7 @@ def generate_table3_inflation(df: pd.DataFrame, out_dir: Path) -> None:
 def generate_table4_multicity(df: pd.DataFrame, out_dir: Path) -> None:
     """Table 4: Cross-city performance across all Gujarat cities and Chennai for Setup C."""
     sub = df[(df["setup"] == "C") & (df["horizon"] == 1)].copy()
+    sub = sub.drop_duplicates(subset=["city", "model"], keep="last")
     
     summary = sub.groupby(["city", "model"])[["mae", "rmse", "r2", "skill", "dm_p"]].first().reset_index()
     summary["city"] = summary["city"].str.capitalize()
@@ -120,12 +139,18 @@ def generate_table4_multicity(df: pd.DataFrame, out_dir: Path) -> None:
     # Pivot table: MAE per city and model
     pivot_mae = sub.pivot(index="city", columns="model", values="mae").round(2)
     pivot_mae.index = pivot_mae.index.str.capitalize()
+    pivot_mae.index.name = "City"
     pivot_mae.columns = [c.replace("_", " ").title() for c in pivot_mae.columns]
+    pivot_mae.columns.name = None
     
     tex = pivot_mae.to_latex(
         caption="Cross-City Comparison of MAE under Setup C ($h=1$ Next-Day Forecast)",
         label="tab:cross_city_mae",
+        escape=False,
     )
+    tex = tex.replace("\\begin{table}\n", "\\begin{table}[htbp]\n\\centering\n")
+    tex = tex.replace("\\begin{tabular}", "\\resizebox{\\linewidth}{!}{\\begin{tabular}")
+    tex = tex.replace("\\end{tabular}", "\\end{tabular}}")
     (out_dir / "table4_multicity.tex").write_text(tex, encoding="utf-8")
     log.info("Wrote table4_multicity.tex and .csv")
 
@@ -133,11 +158,12 @@ def generate_table4_multicity(df: pd.DataFrame, out_dir: Path) -> None:
 def generate_table5_horizons(df: pd.DataFrame, out_dir: Path) -> None:
     """Table 5: Forecast decay from h=1 to h=3 across cities."""
     sub = df[df["setup"] == "C"].copy()
+    sub = sub.drop_duplicates(subset=["city", "model", "horizon"], keep="last")
     pivot = sub.pivot(index=["city", "model"], columns="horizon", values="mae").round(2).reset_index()
     pivot["city"] = pivot["city"].str.capitalize()
     pivot["model"] = pivot["model"].str.replace("_", " ").str.title()
     pivot = pivot.rename(columns={1: "MAE (h=1)", 3: "MAE (h=3)"})
-    pivot["Degradation (%)"] = ((pivot["MAE (h=3)"] - pivot["MAE (h=1)"]) / pivot["MAE (h=1)"] * 100).round(1)
+    pivot["Degradation (\\%)"] = ((pivot["MAE (h=3)"] - pivot["MAE (h=1)"]) / pivot["MAE (h=1)"] * 100).round(1)
     
     pivot.to_csv(out_dir / "table5_horizons.csv", index=False)
     tex = pivot.to_latex(
@@ -145,7 +171,11 @@ def generate_table5_horizons(df: pd.DataFrame, out_dir: Path) -> None:
         caption="Forecast Horizon Degradation: Error Growth from Next-Day ($h=1$) to 3-Day ($h=3$) Lead Times",
         label="tab:horizon_degradation",
         column_format="llccc",
+        escape=False,
     )
+    tex = tex.replace("\\begin{table}\n", "\\begin{table}[htbp]\n\\centering\n")
+    tex = tex.replace("\\begin{tabular}", "\\resizebox{0.75\\linewidth}{!}{\\begin{tabular}")
+    tex = tex.replace("\\end{tabular}", "\\end{tabular}}")
     (out_dir / "table5_horizons.tex").write_text(tex, encoding="utf-8")
     log.info("Wrote table5_horizons.tex and .csv")
 

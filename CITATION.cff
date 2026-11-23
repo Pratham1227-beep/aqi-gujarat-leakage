@@ -1,7 +1,8 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-  - family-names: Pratham Khatri
+  - given-names: Pratham Dakshay
+    family-names: Khatri
 title: "AQI Gujarat Leakage: reproducible ML evaluation of next-day AQI prediction"
 version: 0.1.0
 date-released: 2026-11-23
