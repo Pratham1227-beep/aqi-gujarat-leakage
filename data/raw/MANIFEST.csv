@@ -1,0 +1,7 @@
+source,url,retrieved_at,filename,sha256,licence,rows
+kaggle,https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india,2026-11-23T08:22:06+00:00,city_day.csv,0d84b21c3e4878bbad8df362f2ab05f61ad959538dddf5918e714077ed3c1847,CC0,29531
+kaggle,https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india,2026-11-23T08:22:06+00:00,city_hour.csv,fae474062ec6b10af7c5b2ac4e32f5c240a0ef80835ee3a50332fec06e2190a4,CC0,707875
+kaggle,https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india,2026-11-23T08:22:06+00:00,station_day.csv,f07787eb4c36c53b07763f591ee29fa01fbaa4d18df1a470447d04def79677b9,CC0,108035
+kaggle,https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india,2026-11-23T08:22:07+00:00,station_hour.csv,26a423c66fe9763064d580ffb007150375cfa2056e62b29d52b1b7857af54fde,CC0,2589083
+kaggle,https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india,2026-11-23T08:22:08+00:00,stations.csv,ce2b7081c3e3c89145613eb724d7d2149ef79c6e16f36bb8a835747a673ed410,CC0,230
+zenodo,https://zenodo.org/api/records/11146316/files/India_AQI_Bulletins_Master.csv/content,2026-11-23T08:24:46+00:00,India_AQI_Bulletins_Master.csv,c2590a04fa0590ff092e8a3f5cb452b4fdc5526160539ecf77671e573c560f18,CC-BY,299976

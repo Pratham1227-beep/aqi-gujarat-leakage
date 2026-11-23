@@ -1,40 +1,69 @@
-# City qualification rule (Phase 0, step 5).
+# City qualification rule and outcomes (Phase 1 Gate 1).
 #
-# Qualification: at least 3 years of daily AQI, under 15% missing, pollutants
-# present for setups A and B (same-day pollutants). Cities with AQI only run
-# setup C. Chennai is the replication anchor.
-#
-# Status is "unchecked" until the ingest step fills real findings in
-# docs/data_availability.md. The list below is the candidate set; the
-# qualification outcome is written back here after Gate 1.
+# Qualification criteria:
+# - At least 3 years of daily AQI
+# - Under 15% missing over the qualification window
+# - Pollutants present for Setups A and B (same-day pollutants).
+# - Cities with AQI only qualify for Setup C.
+# - Chennai is the replication anchor.
 
 cities:
   - name: Ahmedabad
-    source: cpcb_bulletin
+    source: kaggle_and_bulletin
     years: [2015, 2023]
     frequency: daily
     pollutants: [pm25, pm10, no2, so2, co, o3, nh3]
-    status: unchecked
+    status: qualified
     qualifies_ab: true
     qualifies_c: true
-    notes: "Primary study city."
+    notes: "Primary study city. Qualifies for A, B, and C with full pollutant suite."
+
+  - name: Chennai
+    source: kaggle_and_bulletin
+    years: [2015, 2023]
+    frequency: daily
+    pollutants: [pm25, pm10, no2, so2, co, o3, nh3]
+    status: qualified
+    qualifies_ab: true
+    qualifies_c: true
+    notes: "Replication anchor for setup C persistence (R2 ~0.475, MAE ~12.4) and Setup A baseline."
 
   - name: Surat
     source: cpcb_bulletin
-    years: [2015, 2023]
+    years: [2022, 2023]
     frequency: daily
-    pollutants: [pm25, pm10, no2, so2, co, o3, nh3]
-    status: unchecked
-    qualifies_ab: true
+    pollutants: []
+    status: fallback_c_only
+    qualifies_ab: false
     qualifies_c: true
-    notes: "Fallback: if station data unavailable, runs setup C only."
+    notes: "Fallback per Phase 1 step 6: lacks station pollutants; runs Setup C on bulletin AQI."
 
-  - name: Chennai
+  - name: Gandhinagar
     source: cpcb_bulletin
-    years: [2015, 2023]
+    years: [2019, 2023]
     frequency: daily
-    pollutants: [pm25, pm10, no2, so2, co, o3, nh3]
-    status: unchecked
-    qualifies_ab: true
+    pollutants: []
+    status: qualified_c_only
+    qualifies_ab: false
     qualifies_c: true
-    notes: "Replication anchor for setup C persistence R2 ~0.475, MAE ~12.4."
+    notes: "Secondary Gujarat city: 4.9 years of bulletin AQI (> 3 years, 0% missing). Qualifies for Setup C."
+
+  - name: Ankleshwar
+    source: cpcb_bulletin
+    years: [2019, 2023]
+    frequency: daily
+    pollutants: []
+    status: qualified_c_only
+    qualifies_ab: false
+    qualifies_c: true
+    notes: "Secondary Gujarat industrial hub: 4.9 years of bulletin AQI. Qualifies for Setup C."
+
+  - name: Vapi
+    source: cpcb_bulletin
+    years: [2019, 2023]
+    frequency: daily
+    pollutants: []
+    status: qualified_c_only
+    qualifies_ab: false
+    qualifies_c: true
+    notes: "Secondary Gujarat industrial hub: 4.9 years of bulletin AQI. Qualifies for Setup C."

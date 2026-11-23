@@ -1,11 +1,20 @@
 # Data/raw, processed, results — not tracked
-data/raw/
-data/interim/
-data/processed/
-results/preds/
-results/logs/
-results/tables/
-results/figures/
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/MANIFEST.csv
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+results/preds/*
+!results/preds/.gitkeep
+results/logs/*
+!results/logs/.gitkeep
+results/tables/*
+!results/tables/.gitkeep
+results/figures/*
+!results/figures/.gitkeep
+scratch/
 *.pt
 *.pth
 .venv/

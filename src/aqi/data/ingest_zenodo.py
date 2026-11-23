@@ -12,7 +12,7 @@ import requests
 from aqi.data.manifest import Manifest
 
 ZENODO_API = "https://zenodo.org/api/records"
-ZENODO_RECORD = "4264575"  # placeholder record ID
+ZENODO_RECORD = "11146316"  # "Air Quality Index for Indian Cities 2015-2023"
 
 
 def ingest_zenodo(
@@ -37,7 +37,7 @@ def ingest_zenodo(
     for entry in record.get("files", []):
         file_url = entry.get("links", {}).get("self", "")
         filename = str(entry.get("key", ""))
-        if "AQI" not in filename.upper() and "bulletin" not in filename.lower():
+        if not filename.endswith(".csv") or "bulletin" not in filename.lower():
             continue
 
         target: Path = raw_dir / filename
@@ -50,7 +50,10 @@ def ingest_zenodo(
             for chunk in r.iter_content(chunk_size=65536):
                 fh.write(chunk)
 
-        manifest.add(source="zenodo", url=file_url, filename=filename, licence="CC-BY", rows=None)
+        with target.open("r", encoding="utf-8", errors="ignore") as fh:
+            rows = sum(1 for _ in fh) - 1
+
+        manifest.add(source="zenodo", url=file_url, filename=filename, licence="CC-BY", rows=rows)
         return target
 
     return None
