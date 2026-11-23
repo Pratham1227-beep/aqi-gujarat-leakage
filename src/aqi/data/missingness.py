@@ -70,7 +70,8 @@ def _longest_gap_days(dates: pd.Series, missing: pd.Series) -> int:
     if len(missing) == 0 or not missing.any():
         return 0
     # Sort by date
-    df = pd.DataFrame({"date": pd.to_datetime(dates), "missing": missing}).sort_values("date")
-    df["gap_group"] = df["missing"].cumsum()
+    df = pd.DataFrame({"date": pd.to_datetime(dates), "missing": missing.astype(bool)}).sort_values("date")
+    # Non-missing values increment the group counter so consecutive missing values share the same group
+    df["gap_group"] = (~df["missing"]).cumsum()
     gaps = df[df["missing"]].groupby("gap_group").size()
     return int(gaps.max()) if len(gaps) > 0 else 0

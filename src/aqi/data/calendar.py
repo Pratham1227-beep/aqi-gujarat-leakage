@@ -25,4 +25,7 @@ def reindex_to_complete(df: pd.DataFrame, date_col: str = "date") -> pd.DataFram
     full = build_daily_index(df[date_col].min(), df[date_col].max())
     df = df.set_index(date_col).reindex(full)
     df.index.name = date_col
-    return df.reset_index()
+    res = df.reset_index()
+    if "city" in res.columns:
+        res["city"] = res["city"].ffill().bfill()
+    return res

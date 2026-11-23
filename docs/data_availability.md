@@ -27,3 +27,16 @@ Real empirical findings evaluated from `data/raw/` downloads (`India_AQI_Bulleti
 ## 3. CCR Station Data Note (Ground Rule 2)
 
 Automated scraping of the live CPCB CCR portal is restricted by captchas and session tokens. All available station data for Gujarat and Chennai has been collected via the CPCB archive release. Any additional hourly CCR station files provided manually by the user will be placed under `data/raw/ccr/`.
+
+## 4. Processed Daily Datasets (`data/processed/`)
+
+Generated via `build_interim.py` and `build_processed.py`:
+
+| City | Date Range | Total Calendar Days | Valid AQI Days | Missing AQI (%) | Valid PM2.5 Days | Invalid CO Removed | Target Setups |
+|------|------------|---------------------|----------------|-----------------|------------------|--------------------|---------------|
+| **Ahmedabad** | 2015-05-01 to 2023-12-31 | 3,167 | 2,538 | 19.9% | 1,149 (36.3%) | 10 (>100 mg/m³) | Setups A, B, C |
+| **Chennai** | 2015-05-01 to 2023-12-31 | 3,167 | 3,075 | 2.9% | 1,792 (56.6%) | 0 | Setups A, B, C (Anchor) |
+| **Gandhinagar** | 2019-02-05 to 2023-12-31 | 1,791 | 1,704 | 4.9% | N/A (Bulletin only) | 0 | Setup C |
+| **Ankleshwar** | 2019-02-05 to 2023-12-31 | 1,791 | 1,502 | 16.1% | N/A (Bulletin only) | 0 | Setup C |
+| **Vapi** | 2019-02-14 to 2023-12-31 | 1,782 | 1,349 | 24.3% | N/A (Bulletin only) | 0 | Setup C |
+| **Surat** | 2022-11-04 to 2023-12-31 | 423 | 327 | 22.7% | N/A (Bulletin only) | 0 | Setup C (Fallback) |
