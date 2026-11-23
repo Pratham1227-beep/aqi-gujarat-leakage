@@ -1,0 +1,32 @@
+# Feature configuration.
+#
+# Task N (nowcast): pollutants at day t, calendar features, optional weather at
+# day t. Used for setups A and B only.
+# Task F (forecast): information up to day t only, y is AQI at t+h, h in {1,3,7}.
+
+task_n:
+  use_pollutants: true
+  use_calendar: true
+  use_weather: true
+
+task_f:
+  target_lags: [1, 2, 3, 7, 14]
+  pollutant_lags: [1, 2, 3, 7]
+  rolling_windows: [3, 7, 14, 30]
+  rolling_stats: [mean, std]
+  use_calendar: true
+  use_weather: false  # forecast-safe: observed lagged weather only
+  shift_all: 1  # every feature is shifted by 1 day before splitting
+
+calendar:
+  day_of_week: true
+  month: true
+  sin_cos: true
+  diwali_window_days: 7
+  season: true
+
+weather:
+  temp: true
+  rh: true
+  wind_speed: true
+  precip: true

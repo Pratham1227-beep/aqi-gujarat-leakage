@@ -1,0 +1,40 @@
+# City qualification rule (Phase 0, step 5).
+#
+# Qualification: at least 3 years of daily AQI, under 15% missing, pollutants
+# present for setups A and B (same-day pollutants). Cities with AQI only run
+# setup C. Chennai is the replication anchor.
+#
+# Status is "unchecked" until the ingest step fills real findings in
+# docs/data_availability.md. The list below is the candidate set; the
+# qualification outcome is written back here after Gate 1.
+
+cities:
+  - name: Ahmedabad
+    source: cpcb_bulletin
+    years: [2015, 2023]
+    frequency: daily
+    pollutants: [pm25, pm10, no2, so2, co, o3, nh3]
+    status: unchecked
+    qualifies_ab: true
+    qualifies_c: true
+    notes: "Primary study city."
+
+  - name: Surat
+    source: cpcb_bulletin
+    years: [2015, 2023]
+    frequency: daily
+    pollutants: [pm25, pm10, no2, so2, co, o3, nh3]
+    status: unchecked
+    qualifies_ab: true
+    qualifies_c: true
+    notes: "Fallback: if station data unavailable, runs setup C only."
+
+  - name: Chennai
+    source: cpcb_bulletin
+    years: [2015, 2023]
+    frequency: daily
+    pollutants: [pm25, pm10, no2, so2, co, o3, nh3]
+    status: unchecked
+    qualifies_ab: true
+    qualifies_c: true
+    notes: "Replication anchor for setup C persistence R2 ~0.475, MAE ~12.4."

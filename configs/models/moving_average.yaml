@@ -1,0 +1,4 @@
+# 7-day moving average baseline.
+model: moving_average
+params:
+  window: 7

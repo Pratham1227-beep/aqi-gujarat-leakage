@@ -1,0 +1,11 @@
+# LSTM: PyTorch, input window of 14 days by features, hidden 64, 1 layer, dropout 0.2.
+model: lstm
+params:
+  window: 14
+  hidden: 64
+  layers: 1
+  dropout: 0.2
+  batch_size: 32
+  epochs: 100
+  lr: 0.001
+  early_stopping_patience: 10

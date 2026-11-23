@@ -1,0 +1,47 @@
+# Global paths, seeds and metrics for the AQI study.
+data_raw_dir: data/raw
+data_interim_dir: data/interim
+data_processed_dir: data/processed
+
+results_dir: results
+results_runs_csv: results/runs.csv
+results_preds_dir: results/preds
+results_logs_dir: results/logs
+
+figures_dir: results/figures
+tables_dir: results/tables
+
+cities_file: configs/cities.yaml
+features_file: configs/features.yaml
+protocol_file: configs/protocol.yaml
+models_dir: configs/models
+
+cities:
+  - Ahmedabad
+  - Surat
+  - Chennai
+
+seeds:
+  numpy: 42
+  python: 42
+  torch: 42
+
+metrics:
+  mae: true
+  rmse: true
+  r2: true
+  skill: true
+  band_accuracy: true
+  spike_recall: true
+  bootstrap_resamples: 1000
+  bootstrap_block_days: 7
+  dm_hac_lags: 1
+  dm_small_sample_correction: true
+
+split:
+  random_test_fraction: 0.2
+  random_seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  chronological_test_fraction: 0.2
+  rolling_test_fraction: 0.2
+  horizons: [1, 3, 7]
+  refit_cadence_days: 30

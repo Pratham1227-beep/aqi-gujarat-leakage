@@ -1,0 +1,4 @@
+# Ridge regression with alpha grid, standardised features.
+model: ridge
+params:
+  alpha: 1.0

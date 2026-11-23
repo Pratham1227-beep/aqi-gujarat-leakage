@@ -1,0 +1,16 @@
+# Data/raw, processed, results — not tracked
+data/raw/
+data/interim/
+data/processed/
+results/preds/
+results/logs/
+results/tables/
+results/figures/
+*.pt
+*.pth
+.venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+.ipynb_checkpoints

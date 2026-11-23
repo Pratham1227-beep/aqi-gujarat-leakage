@@ -1,0 +1,3 @@
+# Persistence baseline: predicts AQI at t (Task N) or y at t-6 same weekday (Task F h=1).
+model: persistence
+params: {}

@@ -1,0 +1,5 @@
+# SARIMAX: order chosen by AIC on the earliest training window over a small grid.
+model: sarimax
+params:
+  order: null
+  seasonal_order: [1, 0, 1, 7]

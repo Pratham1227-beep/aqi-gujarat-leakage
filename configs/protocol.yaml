@@ -1,0 +1,24 @@
+# Protocol v1: frozen before any model runs.
+# Setups A, B, C and horizons. Any change after tagging is a logged deviation
+# in docs/decisions.md.
+
+setups:
+  A:
+    description: "Random 80/20 (10 seeds), same-day pollutants, that day's AQI."
+    split: random
+    inputs: same_day_pollutants
+    target: same_day_aqi
+  B:
+    description: "Chronological 80/20, same-day pollutants, that day's AQI."
+    split: chrono
+    inputs: same_day_pollutants
+    target: same_day_aqi
+  C:
+    description: "Rolling-origin, expanding window, monthly refit, last 20%."
+    split: rolling_origin
+    inputs: up_to_day_t
+    target: t_plus_horizon
+
+horizons: [1, 3, 7]
+refit_cadence_days: 30
+test_fraction: 0.2
