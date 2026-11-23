@@ -35,7 +35,8 @@ def build_task_n(
     feature_cols = [
         c
         for c in X.columns
-        if any(c.startswith(p) for p in pollutant_cols)
+        if c in pollutant_cols
+        or any(c.startswith(f"{p}_") for p in pollutant_cols)
         or c.startswith("calendar_")
         or c.startswith("weather_")
     ]
@@ -94,7 +95,14 @@ def build_task_f(
     X = X[mask]
     y = y[mask]
 
-    feature_cols = [c for c in X.columns if c not in ("date", "city", "source")]
+    feature_cols = [
+        c
+        for c in X.columns
+        if "_lag_" in c
+        or "_roll_" in c
+        or c.startswith("calendar_")
+        or c.startswith("weather_")
+    ]
     X = X[feature_cols]
 
     meta = {
