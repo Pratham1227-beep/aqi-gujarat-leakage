@@ -80,3 +80,15 @@ def compute_spike_recall(
     tp = np.sum(true_spikes & pred_spikes)
     fn = np.sum(true_spikes & ~pred_spikes)
     return float(tp / (tp + fn))
+
+
+def compute_directional_accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Directional accuracy of sequential changes."""
+    mask = ~np.isnan(y_true) & ~np.isnan(y_pred)
+    if not np.any(mask) or len(y_true[mask]) < 2:
+        return float("nan")
+    yt = y_true[mask]
+    yp = y_pred[mask]
+    diff_true = np.diff(yt)
+    diff_pred = np.diff(yp)
+    return float(np.mean(np.sign(diff_true) == np.sign(diff_pred)))
