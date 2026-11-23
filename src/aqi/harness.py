@@ -127,11 +127,33 @@ def run_experiment(
     }
 
 
+RUNS_COLUMNS = [
+    "city",
+    "setup",
+    "model",
+    "horizon",
+    "seed",
+    "n_train",
+    "n_test",
+    "mae",
+    "mae_ci_low",
+    "mae_ci_high",
+    "rmse",
+    "r2",
+    "skill",
+    "band_acc",
+    "spike_recall",
+    "directional_acc",
+    "dm_stat",
+    "dm_p",
+]
+
+
 def append_to_runs_csv(row: dict[str, Any]) -> None:
     _init_results_dir()
-    # Exclude array-like keys
-    row_clean = {k: v for k, v in row.items() if not isinstance(v, (np.ndarray, list, pd.Series))}
-    df_row = pd.DataFrame([row_clean])
+    # Align to standard columns
+    row_aligned = {col: row.get(col, np.nan) for col in RUNS_COLUMNS}
+    df_row = pd.DataFrame([row_aligned])
     if not RUNS_CSV.exists():
         df_row.to_csv(RUNS_CSV, index=False)
     else:
