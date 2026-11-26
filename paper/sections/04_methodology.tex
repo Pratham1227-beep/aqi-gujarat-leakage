@@ -40,7 +40,7 @@ We benchmark six forecasters spanning classical naive baselines, linear regulari
 Hyperparameters were established based on environmental machine learning conventions and held fixed across all cities to eliminate post-hoc tuning leakage.
 
 \subsection{Evaluation Metrics and Hypothesis Testing}
-Primary predictive accuracy is measured using Mean Absolute Error (MAE), supplemented by Root Mean Squared Error (RMSE) and $R^2$. Band Accuracy (Band Acc) measures the fraction of predictions that fall within the same CPCB categorical AQI band as the observed value (Good, Satisfactory, Moderate, Poor, Very Poor, or Severe). Statistical uncertainty in Setup~C model comparisons is evaluated via the Diebold-Mariano test rather than tabulated bootstrap intervals.
+Primary predictive accuracy is measured using Mean Absolute Error (MAE), supplemented by Root Mean Squared Error (RMSE) and $R^2$. Band Accuracy (Band Acc) measures the fraction of predictions that fall within the same CPCB categorical AQI band as the observed value (Good, Satisfactory, Moderate, Poor, Very Poor, or Severe). To account for serial correlation in error residuals, 95\% confidence intervals for MAE are estimated via the moving block bootstrap ($B = 1{,}000$ resamples, block length $b = 7$ days matching the empirical weekly cycle).
 
 The final 20\% of each city's valid-day record forms the test window. This corresponds to approximately 65 test points for Surat ($n = 327$ valid days) and roughly one season ($\sim$340 days) for Gandhinagar; smaller test windows reduce Diebold-Mariano power and should be interpreted with appropriate caution.
 

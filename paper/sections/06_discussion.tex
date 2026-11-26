@@ -26,7 +26,7 @@ Several limitations of the present study should be noted:
 \begin{itemize}
   \item \textbf{Station Network Heterogeneity:} City-level AQI values represent spatial averages across active municipal CAAQMS stations. Station additions or maintenance outages over the 2015--2023 timeframe may introduce minor unmodelled level shifts in the aggregate series.
   \item \textbf{Exclusion of Numerical Weather Prediction (NWP) Forcing:} To isolate the autoregressive information content of surface monitoring records, this benchmark excluded numerical weather forecasts (wind vector, mixing height, relative humidity). Incorporating high-resolution operational NWP grids represents an essential avenue for future research.
-  \item \textbf{Fixed Hyperparameter Regimes:} Model hyperparameters were held constant across cities to prevent post-hoc optimization leakage. Implementing nested, expanding-window temporal cross-validation could yield marginal refinements in tree ensemble performance.
+  \item \textbf{Fixed Hyperparameter Regimes:} Primary benchmark hyperparameters were held constant across cities to prevent post-hoc optimization leakage. While a 3-fold \texttt{TimeSeriesSplit} tuned check on Ahmedabad yielded no significant improvement over Persistence ($\text{MAE} = 19.99\text{--}21.03$, all $p \ge 0.30$), full nested rolling-origin tuning across all cities could yield marginal refinements.
   \item \textbf{Geographical Scope:} Our empirical scope centered on western India (Gujarat) and a southern maritime anchor (Chennai). Extending this audit to the Indo-Gangetic Plain, where intense seasonal biomass burning and winter fog inversions prevail, constitutes an important next step.
 \end{itemize}
 

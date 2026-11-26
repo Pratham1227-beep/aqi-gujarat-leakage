@@ -1,23 +1,23 @@
 \begin{table}[htbp]
 \centering
-\caption{Setup C Next-Day ($t+1$) Forecasting Benchmark vs Persistence Baseline. \textit{Note:} Skill score denotes normalized MAE improvement over Persistence ($1 - \text{MAE}_{\text{model}}/\text{MAE}_{\text{persistence}}$); DM $p$-value evaluates two-tailed significance vs Persistence, with asterisks ($^*$) marking $p < 0.05$ in either direction (both candidate model wins and Persistence wins).}
+\caption{Setup C Next-Day ($t+1$) Forecasting Benchmark vs Persistence Baseline with 95\% Moving Block-Bootstrap Confidence Intervals ($b=7$, $B=1{,}000$). \textit{Note:} Skill score denotes normalized MAE improvement over Persistence ($1 - \text{MAE}_{\text{model}}/\text{MAE}_{\text{persistence}}$); DM $p$-value evaluates two-tailed significance vs Persistence, with asterisks ($^*$) marking $p < 0.05$ in either direction (both candidate model wins and Persistence wins).}
 \label{tab:main_benchmark_h1}
-\resizebox{\linewidth}{!}{\begin{tabular}{llcccccc}
+\resizebox{\linewidth}{!}{\begin{tabular}{llccccccc}
 \toprule
-City & Model & MAE & RMSE & R2 & Skill & Band Acc (\%) & DM p-value \\
+City & Model & MAE & 95\% CI & RMSE & R2 & Skill & Band Acc (\%) & DM p-value \\
 \midrule
-Ahmedabad & Persistence & 20.21 & 28.83 & 0.462 & 0.000 & 75.8 & -- \\
-Ahmedabad & Seasonal Naive & 26.85 & 35.95 & 0.162 & -0.328 & 70.0 & 0.000$^*$ \\
-Ahmedabad & Moving Average & 20.01 & 27.10 & 0.525 & 0.010 & 76.7 & 0.766 \\
-Ahmedabad & Ridge & 20.83 & 27.24 & 0.520 & -0.031 & 77.5 & 0.402 \\
-Ahmedabad & Random Forest & 20.73 & 27.67 & 0.505 & -0.026 & 79.5 & 0.510 \\
-Ahmedabad & XGBoost & 20.91 & 28.01 & 0.493 & -0.034 & 78.7 & 0.419 \\
-Chennai & Persistence & 17.90 & 28.58 & -0.034 & 0.000 & 74.4 & -- \\
-Chennai & Seasonal Naive & 23.02 & 35.78 & -0.620 & -0.286 & 67.9 & 0.000$^*$ \\
-Chennai & Moving Average & 18.37 & 28.48 & -0.026 & -0.026 & 72.4 & 0.494 \\
-Chennai & Ridge & 16.18 & 25.05 & 0.206 & 0.096 & 78.0 & 0.010$^*$ \\
-Chennai & Random Forest & 15.84 & 24.87 & 0.218 & 0.115 & 78.0 & 0.002$^*$ \\
-Chennai & XGBoost & 16.11 & 25.34 & 0.188 & 0.100 & 76.9 & 0.001$^*$ \\
+Ahmedabad & Persistence & 20.21 & [17.17, 22.69] & 28.83 & 0.462 & 0.000 & 75.8 & -- \\
+Ahmedabad & Seasonal Naive & 26.85 & [23.45, 29.85] & 35.95 & 0.162 & -0.328 & 70.0 & 0.000$^*$ \\
+Ahmedabad & Moving Average & 20.01 & [17.48, 22.51] & 27.10 & 0.525 & 0.010 & 76.7 & 0.766 \\
+Ahmedabad & Ridge & 20.83 & [18.24, 23.33] & 27.24 & 0.520 & -0.031 & 77.5 & 0.402 \\
+Ahmedabad & Random Forest & 20.73 & [18.17, 23.17] & 27.67 & 0.505 & -0.026 & 79.5 & 0.510 \\
+Ahmedabad & XGBoost & 20.91 & [18.26, 23.45] & 28.01 & 0.493 & -0.034 & 78.7 & 0.419 \\
+Chennai & Persistence & 17.90 & [15.14, 21.11] & 28.58 & -0.034 & 0.000 & 74.4 & -- \\
+Chennai & Seasonal Naive & 23.02 & [19.25, 26.89] & 35.78 & -0.620 & -0.286 & 67.9 & 0.000$^*$ \\
+Chennai & Moving Average & 18.37 & [15.10, 21.85] & 28.48 & -0.026 & -0.026 & 72.4 & 0.494 \\
+Chennai & Ridge & 16.18 & [13.69, 19.07] & 25.05 & 0.206 & 0.096 & 78.0 & 0.010$^*$ \\
+Chennai & Random Forest & 15.84 & [13.39, 18.71] & 24.87 & 0.218 & 0.115 & 78.0 & 0.002$^*$ \\
+Chennai & XGBoost & 16.11 & [13.62, 18.99] & 25.34 & 0.188 & 0.100 & 76.9 & 0.001$^*$ \\
 \bottomrule
 \end{tabular}}
 \end{table}
