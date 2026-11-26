@@ -7,7 +7,7 @@ To decouple the components of predictive performance and quantify artificial inf
 
 \begin{description}
   \item[Setup A (Random Split, Concurrent Inputs):] Features consist of concurrent same-day criteria pollutant concentrations $\{PM_{2.5,t}, PM_{10,t}, NO_{2,t}, SO_{2,t}, CO_t, O_{3,t}, NH_{3,t}\}$ and calendar harmonic encodings. Training and test samples are randomly partitioned via an 80/20 ratio across 10 independent random seeds. This mirrors the prevailing setup in published literature and captures the combined effect of concurrent input leakage and autocorrelation leakage.
-  \item[Setup B (Chronological Split, Concurrent Inputs):] Utilises the identical concurrent feature matrix as Setup~A, but enforces a strict chronological 80/20 partition: the initial 80\% of calendar days form the training set, and the final 20\% form the test set. By holding the feature set constant while restoring temporal ordering, Setup~B isolates the precise inflation attributable to random splitting.
+  \item[Setup B (Chronological Split, Concurrent Inputs):] Utilises the identical concurrent feature matrix as Setup~A, but enforces a strict chronological 80/20 partition: the initial 80\% of calendar days form the training set, and the final 20\% form the test set. By holding the feature set constant while restoring temporal ordering, Setup~B reflects the combined effect of eliminating random-split autocorrelation leakage and any temporal distribution shift between the training and test windows.
   \item[Setup C (Rolling-Origin, Strictly Lagged Inputs):] Evaluates true advance forecasting ($h=1$ and $h=3$ days ahead). Predictor variables $X_t$ are restricted strictly to information recorded at or prior to forecast origin $t$. Models are evaluated over the final 20\% temporal window using an expanding training origin refit every 30 calendar days.
 \end{description}
 
@@ -40,7 +40,7 @@ We benchmark six forecasters spanning classical naive baselines, linear regulari
 Hyperparameters were established based on environmental machine learning conventions and held fixed across all cities to eliminate post-hoc tuning leakage.
 
 \subsection{Evaluation Metrics and Hypothesis Testing}
-Primary predictive accuracy is measured using Mean Absolute Error (MAE), supplemented by Root Mean Squared Error (RMSE) and $R^2$. Band Accuracy (Band Acc) measures the fraction of predictions that fall within the same CPCB categorical AQI band as the observed value (Good, Satisfactory, Moderate, Poor, Very Poor, or Severe). To account for serial correlation in error residuals, 95\% confidence intervals for MAE are estimated via the stationary block bootstrap ($B = 1{,}000$ iterations, block length $b = 7$ days matching the empirical weekly autocorrelation cycle).
+Primary predictive accuracy is measured using Mean Absolute Error (MAE), supplemented by Root Mean Squared Error (RMSE) and $R^2$. Band Accuracy (Band Acc) measures the fraction of predictions that fall within the same CPCB categorical AQI band as the observed value (Good, Satisfactory, Moderate, Poor, Very Poor, or Severe). Statistical uncertainty in Setup~C model comparisons is evaluated via the Diebold-Mariano test rather than tabulated bootstrap intervals.
 
 The final 20\% of each city's valid-day record forms the test window. This corresponds to approximately 65 test points for Surat ($n = 327$ valid days) and roughly one season ($\sim$340 days) for Gandhinagar; smaller test windows reduce Diebold-Mariano power and should be interpreted with appropriate caution.
 
