@@ -1,0 +1,41 @@
+\begin{table}[htbp]
+\centering
+\caption{Diebold--Mariano Test Results at $h=3$ Under Setup~C (Candidate vs.\ Persistence). Skill $= 1 - \text{MAE}_{\text{model}}/\text{MAE}_{\text{persistence}}$. Asterisk (*) denotes $p < 0.05$.}
+\label{tab:dm_h3}
+\resizebox{\linewidth}{!}{\begin{tabular}{llrrrrc}
+\toprule
+City & Model & MAE ($h=3$) & Persistence MAE & Skill (\%) & DM $p$ & Sig. \\
+\midrule
+Ahmedabad & 7-Day MA & 22.08 & 23.39 & 5.6 & 0.2011 &  \\
+ & Seas. Naive & 28.44 & 23.39 & -21.6 & 0.0018 & * \\
+ & Ridge & 23.27 & 23.39 & 0.5 & 0.9412 &  \\
+ & Random Forest & 23.02 & 23.39 & 1.6 & 0.8250 &  \\
+ & XGBoost & 22.26 & 23.39 & 4.8 & 0.4217 &  \\
+Ankleshwar & 7-Day MA & 33.88 & 38.07 & 11.0 & 0.0290 & * \\
+ & Seas. Naive & 43.91 & 38.07 & -15.3 & 0.1133 &  \\
+ & Ridge & 34.88 & 38.07 & 8.4 & 0.1142 &  \\
+ & Random Forest & 35.63 & 38.07 & 6.4 & 0.3620 &  \\
+ & XGBoost & 35.17 & 38.07 & 7.6 & 0.2294 &  \\
+Chennai & 7-Day MA & 19.73 & 21.87 & 9.8 & 0.0454 & * \\
+ & Seas. Naive & 24.0 & 21.87 & -9.7 & 0.2156 &  \\
+ & Ridge & 17.81 & 21.87 & 18.6 & 0.0006 & * \\
+ & Random Forest & 18.08 & 21.87 & 17.4 & 0.0016 & * \\
+ & XGBoost & 17.42 & 21.87 & 20.4 & 0.0002 & * \\
+Gandhinagar & 7-Day MA & 29.7 & 30.96 & 4.1 & 0.3880 &  \\
+ & Seas. Naive & 36.0 & 30.96 & -16.3 & 0.0367 & * \\
+ & Ridge & 27.89 & 30.96 & 9.9 & 0.0219 & * \\
+ & Random Forest & 31.21 & 30.96 & -0.8 & 0.9514 &  \\
+ & XGBoost & 30.17 & 30.96 & 2.6 & 0.6304 &  \\
+Surat & 7-Day MA & 46.04 & 56.61 & 18.7 & 0.0196 & * \\
+ & Seas. Naive & 54.2 & 56.61 & 4.3 & 0.8802 &  \\
+ & Ridge & 44.05 & 56.61 & 22.2 & 0.0237 & * \\
+ & Random Forest & 47.45 & 56.61 & 16.2 & 0.1314 &  \\
+ & XGBoost & 49.09 & 56.61 & 13.3 & 0.2803 &  \\
+Vapi & 7-Day MA & 26.2 & 23.86 & -9.8 & 0.5396 &  \\
+ & Seas. Naive & 28.94 & 23.86 & -21.3 & 0.1547 &  \\
+ & Ridge & 26.09 & 23.86 & -9.4 & 0.7127 &  \\
+ & Random Forest & 28.75 & 23.86 & -20.5 & 0.2260 &  \\
+ & XGBoost & 28.68 & 23.86 & -20.2 & 0.1862 &  \\
+\bottomrule
+\end{tabular}}
+\end{table}
