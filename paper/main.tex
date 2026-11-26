@@ -87,11 +87,11 @@ Short-term forecasting of the Air Quality Index (AQI) is essential for timely pu
 \section{Introduction}
 \label{sec:intro}
 
-Ambient air pollution is among the most pressing environmental health challenges in modern India, contributing to an estimated 1.67 million premature deaths annually and imposing substantial socio-economic burdens \cite{lancet2019}. While national monitoring efforts have expanded dramatically under the National Clean Air Programme (NCAP), reliable predictive capabilities remain vital. Robust short-range forecasts of the daily Air Quality Index (AQI) afford municipal authorities, environmental regulators, and vulnerable populations actionable lead time to implement emergency interventions, regulate industrial emissions, and restrict vehicular circulation.
+Ambient air pollution is among the most pressing environmental health challenges in modern India, contributing to an estimated 1.67 million premature deaths annually and imposing substantial socio-economic burdens \cite{pandey2021}. While national monitoring efforts have expanded dramatically under the National Clean Air Programme (NCAP), reliable predictive capabilities remain vital. Robust short-range forecasts of the daily Air Quality Index (AQI) afford municipal authorities, environmental regulators, and vulnerable populations actionable lead time to implement emergency interventions, regulate industrial emissions, and restrict vehicular circulation.
 
 Gujarat, located along India's western industrial corridor, represents a critical yet under-studied theatre for atmospheric modeling. Hosting vast petrochemical complexes, chemical manufacturing zones, and rapidly expanding urban centres (notably Ahmedabad, Surat, Ankleshwar, and Vapi), Gujarat regularly records extreme concentrations of respirable particulate matter ($PM_{2.5}, PM_{10}$) and toxic gaseous pollutants ($SO_2, NO_2, CO$). In contrast to the National Capital Region (NCR) around Delhi, which has received extensive analytical attention, empirical machine learning research focused specifically on Gujarat's distinct geographical and industrial micro-climates remains sparse.
 
-Over the past decade, a surge of applied machine learning literature has investigated urban AQI prediction across Indian municipalities. Authors have deployed linear estimators, support vector machines, Random Forests, Gradient Boosted Decision Trees (XGBoost), and diverse deep learning architectures (e.g., LSTM, GRU). These publications routinely report coefficients of determination ($R^2$) exceeding $0.80$ to $0.95$ and mean absolute percentage errors below $5\%$, concluding that nonlinear machine learning has effectively solved urban air quality forecasting \cite{sharma2020,gulia2015,chauhan2021,srivastava2022,rao2021}.
+Over the past decade, a surge of applied machine learning literature has investigated urban AQI prediction across Indian municipalities. Authors have deployed linear estimators, support vector machines, Random Forests, Gradient Boosted Decision Trees (XGBoost, LightGBM, CatBoost), and diverse deep learning architectures (e.g., LSTM, GRU). These publications routinely report coefficients of determination ($R^2$) exceeding $0.80$ to $0.99$, concluding that nonlinear machine learning has effectively solved urban air quality forecasting \cite{maltare2023,sidhu2024,mishra2025,jayapradha2025,chauhan2026}.
 
 In this paper, we argue that these reported results are heavily inflated by methodological flaws in experimental design. Specifically, two systematic modes of data leakage pervade published studies:
 
@@ -101,18 +101,18 @@ The Central Pollution Control Board (CPCB) prescribes the official daily AQI as 
   \text{AQI}_t = \max_{p \in \mathcal{P}} I_p(C_{p,t})
   \label{eq:cpcb_aqi}
 \end{equation}
-where $\mathcal{P} = \{PM_{2.5}, PM_{10}, NO_2, SO_2, CO, O_3, NH_3\}$ is the set of monitored criteria pollutants, $C_{p,t}$ is the 24-hour mean concentration of pollutant $p$ on calendar day $t$, and $I_p(C_{p,t})$ is the piecewise-linear sub-index conversion function specified by Indian regulatory guidelines. Numerous applied studies train models where concurrent pollutant concentrations $\{C_{p,t}\}_{p \in \mathcal{P}}$ serve as independent input features to predict that same day's aggregate index $\text{AQI}_t$ \cite{sharma2020,gulia2015}. Because same-day pollutant concentrations cannot be observed hours or days in advance, this configuration does not represent operational forecasting; it performs static algebraic reconstruction or nowcasting.
+where $\mathcal{P} = \{PM_{2.5}, PM_{10}, NO_2, SO_2, CO, O_3, NH_3\}$ is the set of monitored criteria pollutants, $C_{p,t}$ is the 24-hour mean concentration of pollutant $p$ on calendar day $t$, and $I_p(C_{p,t})$ is the piecewise-linear sub-index conversion function specified by Indian regulatory guidelines. Numerous applied studies train models where concurrent pollutant concentrations $\{C_{p,t}\}_{p \in \mathcal{P}}$ serve as independent input features to predict that same day's aggregate index $\text{AQI}_t$ \cite{sidhu2024,mishra2025,jayapradha2025,chauhan2026}. Because same-day pollutant concentrations cannot be observed hours or days in advance, this configuration does not represent operational forecasting; it performs static algebraic reconstruction or nowcasting.
 
 \paragraph{Random-Split Autocorrelation Leakage}
 Urban daily AQI series exhibit intense temporal persistence and first-order autocorrelation ($\rho_1 \approx 0.86$ in Ahmedabad). When datasets are partitioned using random train-test splitting (e.g., standard random 80/20 cross-validation), adjacent temporal observations ($t-1$ and $t+1$) invariably enter the training partition while day $t$ is placed in the test partition. Because adjacent days share nearly identical meteorological and atmospheric states, the model interpolates between proximal training points rather than projecting forward in time. This provides artificial predictive cues that collapse completely in deployment.
 
-Although the statistical perils of random splitting on autocorrelated series have been examined in econometrics and theoretical machine learning \cite{bergmeir2012,cerqueira2020,kaufman2012}, their practical distortion within Indian environmental science has not been systematically audited. Furthermore, published studies rarely evaluate simple heuristic benchmarks -- such as the naive Persistence forecaster ($\hat{y}_{t+1} = y_t$) -- or conduct formal statistical hypothesis testing (e.g., the Diebold-Mariano test \cite{diebold1995}) to establish whether machine learning models provide statistically verifiable skill over naive inertia.
+Although the pitfalls of evaluating time-series predictors with shuffled cross-validation have been examined in the forecasting literature \cite{bergmeir2012,cerqueira2020}, and leakage in predictive modelling has been formalised more broadly \cite{kaufman2012}, their practical effect on Indian AQI studies has not been systematically audited. Furthermore, published studies rarely evaluate simple heuristic benchmarks -- such as the naive Persistence forecaster ($\hat{y}_{t+1} = y_t$) -- or conduct formal statistical hypothesis testing (e.g., the Diebold-Mariano test \cite{diebold1995}) to establish whether machine learning models provide statistically verifiable skill over naive inertia.
 
 \paragraph{Contributions.}
 To address these deficiencies and establish rigorous benchmarks, this study delivers three primary contributions:
 \begin{enumerate}
   \item \textbf{Empirical Quantification of Leakage Inflation:} We design three nested, controlled evaluation setups (Setups~A, B, and C) applied to identical multi-year municipal series, isolating and measuring the individual and joint inflation induced by concurrent inputs and random train-test partitioning.
-  \item \textbf{First Leak-Free Multi-City Benchmark for Gujarat:} We implement a strict rolling-origin expanding-window evaluation across five major Gujarat industrial and urban centres (Ahmedabad, Gandhinagar, Ankleshwar, Vapi, Surat) alongside Chennai as a maritime comparative anchor. We evaluate next-day ($h=1$) and three-day ($h=3$) lead times, pairing error distributions with 95\% stationary block-bootstrap confidence intervals and Diebold-Mariano significance testing against Persistence.
+  \item \textbf{Leak-Free Multi-City Benchmark for Gujarat:} To our knowledge, this is the first leak-free, persistence-benchmarked multi-city evaluation for Gujarat. We implement a strict rolling-origin expanding-window evaluation across five major Gujarat industrial and urban centres (Ahmedabad, Gandhinagar, Ankleshwar, Vapi, Surat) alongside Chennai as a maritime comparative anchor. We evaluate next-day ($h=1$) and three-day ($h=3$) lead times, pairing error distributions with 95\% stationary block-bootstrap confidence intervals and Diebold-Mariano significance testing against Persistence.
   \item \textbf{Complete Open-Source Reproducibility Framework:} We release a fully modularised, tested Python package, verified dataset manifests with SHA-256 integrity checksums, and all 138 out-of-sample prediction trajectories, allowing the entire empirical pipeline to be executed via a single command.
 \end{enumerate}
 
@@ -123,26 +123,26 @@ The remainder of this article is organized as follows: Section~\ref{sec:related}
 \label{sec:related}
 
 \subsection{Machine Learning for Air Quality Modeling in India}
-The application of predictive algorithms to air pollution across Indian metropolitan centres has expanded rapidly. Early studies focused primarily on classical statistical techniques, including autoregressive integrated moving average (ARIMA) models and multiple linear regression applied to Delhi monitoring networks \cite{gulia2015}. With the public dissemination of continuous ambient air quality monitoring station (CAAQMS) records by the CPCB, researchers transitioned to nonlinear machine learning algorithms.
+The application of predictive algorithms to air pollution across Indian metropolitan centres has expanded rapidly. Urban air quality management in India has been reviewed extensively \cite{gulia2015}. Early forecasting studies relied primarily on classical statistical techniques such as autoregressive integrated moving average (ARIMA) models and multiple linear regression. With the public dissemination of continuous ambient air quality monitoring station (CAAQMS) records by the CPCB, researchers transitioned to nonlinear machine learning and deep learning algorithms.
 
-Sharma et al.~\cite{sharma2020} applied Random Forest and Extreme Learning Machine algorithms to daily AQI projections across 15 Indian cities, reporting $R^2$ scores exceeding $0.90$ and attributing success to algorithmic complexity. Chauhan and Bhardwaj~\cite{chauhan2021} applied Random Forest, Support Vector Regression, and deep neural networks to Jaipur, claiming superior predictive capacity over baseline techniques. Analogous studies by Srivastava et al.~\cite{srivastava2022} for Lucknow and Rao and Reddy~\cite{rao2021} for Hyderabad reported near-zero forecasting errors with tree-based ensembles.
+In Gujarat, Maltare and Vahora~\cite{maltare2023} evaluated SARIMA, SVM, and LSTM on Ahmedabad (2015--2021), reporting $R^2 = 0.9989$ for SVM-RBF and $R^2 = 0.951$ for LSTM without specifying a chronological validation split or benchmarking against persistence. Across broader Indian regions, Sidhu et al.~\cite{sidhu2024} applied CatBoost, XGBoost, and Random Forest across 22 stations in Delhi, Haryana, and Punjab, reporting $R^2 \approx 1.0$ when feeding eight same-day pollutants to predict same-day AQI. Similarly, Chauhan and Sutaria~\cite{chauhan2026} compared SVM, GBM, and XGBoost across six Indian metropolitan cities (including Ahmedabad) using concurrent hourly pollutant inputs, while Mishra et al.~\cite{mishra2025} reported $R^2 = 0.961\text{--}0.9985$ across South Indian cities using a randomly ordered 80:20 split with seven same-day pollutants. Jayapradha et al.~\cite{jayapradha2025} reported $R^2 = 0.948$ for a hybrid LSTM--RF--XGBoost model on multi-city Kaggle records where both same-day pollutants and the derived AQI category (\texttt{AQI\_Bucket}) ranked among top features, and Chakraborty and Shanthi~\cite{chakraborty2026} (a preprint) reported GRU $R^2 = 0.9886$ using AQI-average features whose windows include the current timestep ($i=0$), which risks target leakage if $\text{AQI}_t$ is the target (the target is not explicitly stated). By contrast, Singh et al.~\cite{singh2025} candidly documented severe generalization collapse in pan-India $\text{PM}_{2.5}$ modeling (Random Forest train $R^2 = 0.99$ versus test $R^2 = 0.35$). Meanwhile, Malhotra et al.~\cite{malhotra2024} systematically surveyed AI-based air pollution prediction studies, with an emphasis on India, cataloging validation schemes (e.g., $k$-fold, 70/30) without auditing data leakage.
 
-Crucially, close methodological examination reveals that the overwhelming majority of these regional studies suffer from one or both leakage mechanisms described in Section~\ref{sec:intro}. Many incorporate concurrent chemical species as independent predictors of same-day aggregate AQI, effectively testing whether a machine learning model can approximate the known piecewise-linear CPCB maximum operator. When multi-step or next-day horizons are nominally targeted, temporal partitioning is frequently bypassed in favour of random $k$-fold cross-validation or unconstrained random sampling.
+Close examination shows that several of these studies \cite{sidhu2024,mishra2025,jayapradha2025,chauhan2026} use concurrent pollutant inputs to predict same-day AQI, and some also use random train-test splits \cite{mishra2025}; for others \cite{maltare2023,chakraborty2026}, the validation design is unreported or ambiguous. These are the two leakage mechanisms described in Section~\ref{sec:intro}.
 
 \subsection{Temporal Data Leakage and Validation Protocols}
 Data leakage occurs when training data inadvertently incorporates information that would be unavailable at inference time, inducing severe optimistic bias \cite{kaufman2012}. In temporal and spatial machine learning, leakage typically arises through lookahead bias (conditioning on future events) or serial dependency exploitation \cite{bergmeir2012}.
 
-Cerqueira et al.~\cite{cerqueira2020} conducted an extensive comparative benchmark of performance estimation methodologies for time series, demonstrating that standard random $k$-fold cross-validation produces systematically over-optimistic performance estimates for autocorrelated data. They demonstrated that rolling-origin (prequential) and blocked temporal cross-validation yield error estimates that mirror real-world generalization. Recently, G{\'o}recki et al.~\cite{gorecki2023} audited environmental data science benchmarks, finding that temporal leakage is particularly prevalent in atmospheric research, where strong diurnal, weekly, and seasonal cycles allow models to exploit temporal interpolation cues.
+Cerqueira et al.~\cite{cerqueira2020} conducted an extensive comparative benchmark of performance-estimation methods for time series, finding that standard random $k$-fold cross-validation produces systematically over-optimistic estimates for non-stationary data, whereas out-of-sample holdout and prequential (rolling-origin) methods yield estimates that mirror real-world generalization. The severity of this distortion in applied benchmarks is further documented by Albelali and Ahmed~\cite{albelali2024}, who showed that LSTM models trained with cross-validation on sliding windows (built before partitioning) overestimate performance by up to 20.5\% in RMSE, and by Garc{\'i}a Crespi et al.~\cite{garciacrespi2026}, who demonstrated using daily PM$_{10}$ data from Elche, Spain that rolling-origin validation \emph{reverses model rankings} relative to a simple persistence baseline when compared to static hold-out splits. Outside India, Xie and Tummala~\cite{xie2025} provided a cross-domain benchmark of boosting algorithms (XGBoost, LightGBM, CatBoost) on urban air quality, while Ayus et al.~\cite{ayus2023} reported that XGBoost outperformed deep learning across 10 Chinese cities based on a random 80/20 split with concurrent pollutant inputs, underscoring how pervasive unvalidated splitting remains in atmospheric ML.
 
 \subsection{Persistence Benchmarking and the Forecast Skill Metric}
-A fundamental principle of meteorological forecast verification is that any proposed prognostic model must be evaluated against standard climatological and persistence benchmarks \cite{murphy1992,myhre2016}. In strongly autocorrelated processes, the naive Persistence forecaster ($\hat{y}_{t+h} = y_t$) represents a formidable obstacle, particularly at short forecast horizons ($h=1$).
+A fundamental principle of meteorological forecast verification is that any proposed prognostic model must be evaluated against standard climatological and persistence benchmarks \cite{murphy1992,jolliffe2012}. In strongly autocorrelated processes, the naive Persistence forecaster ($\hat{y}_{t+h} = y_t$) represents a formidable obstacle, particularly at short forecast horizons ($h=1$).
 
-In international air quality research, Zaini et al.~\cite{zaini2022} demonstrated that Persistence frequently outperforms sophisticated deep neural networks for next-day $PM_{2.5}$ forecasting in urban Malaysia. Similarly, atmospheric verification manuals published by the World Meteorological Organization (WMO) require reporting relative skill scores:
+Most directly relevant to our study, Abidha et al.~\cite{abidha2026} conducted a leakage-aware case study for Chennai (2018--2024), demonstrating that same-day pollutant inputs were near-exact linear rescalings of AQI ($r > 0.9999$); once concurrent inputs were removed, reported $R^2$ collapsed from $1.0$ to $\approx 0.52$, nearly matched by naive Persistence ($R^2 = 0.475$, MAE $= 12.4$). Standard forecast-verification practice recommends reporting skill relative to a reference forecast such as persistence \cite{murphy1992,jolliffe2012}:
 \begin{equation}
   \text{Skill} = 1 - \frac{\text{MAE}_{\text{model}}}{\text{MAE}_{\text{persistence}}}
   \label{eq:skill_def}
 \end{equation}
-where positive values signify genuine predictive value beyond inertial extrapolation. In Indian environmental machine learning literature, persistence benchmarks are rarely included, and formal statistical hypothesis tests -- such as the Diebold-Mariano test \cite{diebold1995} -- are almost never employed to evaluate whether reported performance gains exceed sampling variation.
+where positive values signify genuine predictive value beyond inertial extrapolation. Extending Abidha et al.~\cite{abidha2026}, our study provides, to our knowledge, the first leak-free, persistence-benchmarked multi-city evaluation for Gujarat (including industrial corridors such as Surat, Vapi, and Ankleshwar for which we found no prior AQI forecasting study), isolates random-split versus concurrent-input inflation via nested Setups A, B, and C, evaluates multi-day horizon decay ($h=1$ vs.\ $h=3$), and conducts formal Diebold-Mariano hypothesis testing \cite{diebold1995}.
 
 %% ════════════════════════════════════════════════════════════════════════════
 \section{Data and Preprocessing}
@@ -353,7 +353,7 @@ Several limitations of the present study should be noted:
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper presented an empirical audit of data leakage in Indian air quality forecasting literature and established the first leak-free, rolling-origin benchmark across Gujarat cities. We demonstrated that the combination of concurrent pollutant inputs and random train-test splitting introduces massive performance inflation -- exemplified by Random Forest in Ahmedabad, where explained variance ($R^2$) collapsed by \textbf{98\%} (from $0.815$ to $0.015$) when chronological ordering was restored.
+This paper presented an empirical audit of data leakage in Indian air quality forecasting literature and established, to our knowledge, the first leak-free, rolling-origin benchmark across Gujarat cities. We demonstrated that the combination of concurrent pollutant inputs and random train-test splitting introduces massive performance inflation -- exemplified by Random Forest in Ahmedabad, where explained variance ($R^2$) collapsed by \textbf{98\%} (from $0.815$ to $0.015$) when chronological ordering was restored.
 
 Under rigorous, leak-free rolling-origin evaluation at next-day lead times ($h=1$), machine learning models failed to statistically outperform a naive Persistence baseline in four of six evaluated cities. In industrial Vapi, Persistence was itself statistically superior to Random Forest and XGBoost ($p < 0.001$). Machine learning established verifiable predictive skill only in coastal Chennai ($+11.5\%$ skill, $p = 0.002$) and at multi-day lead times ($h=3$) where atmospheric autocorrelation naturally attenuates.
 
@@ -372,23 +372,40 @@ The entire experimental pipeline is designed for full, single-command reproducti
 \begin{thebibliography}{99}
 \small
 
-\bibitem{lancet2019}
-K.~Balakrishnan et al., ``The impact of air pollution on deaths, disease burden, and life expectancy across the states of India: The Global Burden of Disease Study 2017,'' \emph{The Lancet Planetary Health}, vol.~3, no.~1, pp.~e26--e39, 2019.
+\bibitem{pandey2021}
+A.~Pandey et al., ``Health and economic impact of air pollution in the states of India: The Global Burden of Disease Study 2019,'' \emph{The Lancet Planetary Health}, vol.~5, no.~1, pp.~e25--e38, 2021.
 
 \bibitem{gulia2015}
 S.~Gulia, S.~M.~Shiva Nagendra, M.~Khare, and I.~Khanna, ``Urban air quality management -- a review,'' \emph{Atmospheric Pollution Research}, vol.~6, no.~2, pp.~286--304, 2015.
 
-\bibitem{sharma2020}
-E.~Sharma, R.~C.~Deo, R.~Prasad, and A.~V.~Parisi, ``A hybrid air quality early-warning framework: An hourly forecasting model with online sequential extreme learning machines and empirical mode decomposition algorithms,'' \emph{Science of The Total Environment}, vol.~709, p.~135934, 2020.
+\bibitem{maltare2023}
+N.~N.~Maltare and S.~A.~Vahora, ``Air quality index prediction using machine learning for Ahmedabad city,'' \emph{Digital Chemical Engineering}, vol.~7, p.~100093, 2023.
 
-\bibitem{chauhan2021}
-A.~Chauhan and S.~Bhardwaj, ``Air quality prediction using machine learning: A case study of Jaipur,'' \emph{Environmental Monitoring and Assessment}, vol.~193, no.~4, pp.~1--12, 2021.
+\bibitem{sidhu2024}
+K.~K.~Sidhu, H.~Balogun, and K.~O.~Oseni, ``Predictive modelling of Air Quality Index (AQI) across diverse cities and states of India using machine learning: Investigating the influence of Punjab's stubble burning on AQI variability,'' \emph{International Journal of Management and Information Technology}, vol.~16, no.~1, 2024. (arXiv:2404.08702).
 
-\bibitem{srivastava2022}
-A.~Srivastava, R.~Bhardwaj, and S.~Kumar, ``Machine learning based AQI prediction: A study of Lucknow,'' \emph{Environmental Science and Pollution Research}, vol.~29, no.~5, pp.~7220--7235, 2022.
+\bibitem{mishra2025}
+D.~Mishra, A.~Sahu, and S.~Naman, ``Implementation of boosting algorithms in predicting air quality index of South Indian cities,'' \emph{Engineering Innovations}, vol.~14, pp.~99--115, 2025.
 
-\bibitem{rao2021}
-P.~V.~Rao and C.~R.~Reddy, ``Prediction of AQI using XGBoost and random forest: A comparative study,'' \emph{Journal of Environmental Informatics}, vol.~38, no.~2, pp.~112--122, 2021.
+\bibitem{jayapradha2025}
+J.~Jayapradha, S.-C.~Haw, N.~Palanichamy, V.~Arunesh, S.~Pranav, and T.~S.~Kumar, ``LRX: A hybrid-based real-time air quality index prediction and visualization model,'' \emph{Emerging Science Journal}, vol.~9, no.~5, pp.~2454--2470, 2025.
+\bibitem{chauhan2026}
+K.~Chauhan and K.~Sutaria, ``Machine learning-based air quality monitoring in Indian metropolitan cities: A comparative study,'' \emph{International Journal of Advanced Computer Science and Applications (IJACSA)}, vol.~17, no.~3, 2026.
+
+\bibitem{chakraborty2026}
+P.~Chakraborty and Shanthi~P.~B., ``A dual-branch explainable AI framework combining machine and deep learning for air quality forecasting in Indian cities,'' \emph{Research Square Preprint}, 2026. [Online]. Available: \url{https://www.researchsquare.com/article/rs-8956323/v1}
+
+\bibitem{singh2025}
+S.~K.~Singh, R.~Jain, D.~Palaniappan, K.~Parmar, Premavathi~T., and J.~Gothania, ``Spatiotemporal analysis and machine learning-based prediction of air quality in Indian urban cities,'' \emph{Environmental Research and Technology}, vol.~8, no.~4, pp.~809--822, 2025.
+
+\bibitem{malhotra2024}
+M.~Malhotra, S.~Walia, C.-C.~Lin, I.~K.~Aulakh, and S.~Agarwal, ``A systematic scrutiny of artificial intelligence-based air pollution prediction techniques, challenges, and viable solutions,'' \emph{Journal of Big Data}, vol.~11, 2024, doi: 10.1186/s40537-024-01002-8.
+
+\bibitem{abidha2026}
+A.~K.~Abidha, S.~J.~Kumaar, A.~A.~Dar, and M.~S.~Khan, ``Leakage-aware explainable air quality index forecasting in urban environments using machine learning and time series models: A case study of Chennai, India,'' \emph{Ing{\'e}nierie des Syst{\`e}mes d'Information (IIETA)}, vol.~31, no.~9, 2026.
+
+\bibitem{ayus2023}
+I.~Ayus, N.~Natarajan, and D.~Gupta, ``Comparison of machine learning and deep learning techniques for the prediction of air pollution: A case study from China,'' \emph{Asian Journal of Atmospheric Environment}, vol.~17, art.~no.~4, 2023.
 
 \bibitem{kaufman2012}
 S.~Kaufman, S.~Rosset, C.~Perlich, and O.~Stitelman, ``Leakage in data mining: Formulation, detection, and avoidance,'' \emph{ACM Transactions on Knowledge Discovery from Data}, vol.~6, no.~4, pp.~1--21, 2012.
@@ -399,17 +416,20 @@ C.~Bergmeir and J.~M.~Ben{\'i}tez, ``On the use of cross-validation for time ser
 \bibitem{cerqueira2020}
 V.~Cerqueira, L.~Torgo, and I.~Mozeti{\v{c}}, ``Evaluating time series forecasting models: An empirical study on performance estimation methods,'' \emph{Machine Learning}, vol.~109, no.~11, pp.~1997--2028, 2020.
 
-\bibitem{gorecki2023}
-T.~G{\'o}recki, M.~Mazur, and W.~Rejchel, ``Leakage patterns in environmental machine learning benchmarks,'' \emph{Environmental Data Science}, vol.~2, p.~e12, 2023.
-
 \bibitem{murphy1992}
-A.~H.~Murphy, ``Skill scores based on the mean square error and their relationships to the correlation coefficient,'' \emph{Monthly Weather Review}, vol.~116, no.~12, pp.~2417--2424, 1992.
+A.~H.~Murphy, ``Climatology, persistence, and their linear combination as standards of reference in skill scores,'' \emph{Weather and Forecasting}, vol.~7, no.~4, pp.~692--698, 1992.
 
-\bibitem{myhre2016}
-G.~Myhre, C.~E.~L.~Myhre, B.~H.~Samset, and T.~Storelvmo, ``Aerosols and their relation to global climate and the cryosphere,'' \emph{Nature Climate Change}, vol.~6, no.~7, pp.~668--674, 2016.
+\bibitem{jolliffe2012}
+I.~T.~Jolliffe and D.~B.~Stephenson, Eds., \emph{Forecast Verification: A Practitioner's Guide in Atmospheric Science}, 2nd ed. Chichester, U.K.: Wiley, 2012.
 
-\bibitem{zaini2022}
-N.~Zaini, L.~W.~Ean, A.~N.~Ahmed, M.~Abdul Malek, and M.~F.~Chow, ``A novel approach of air quality index prediction using machine learning,'' \emph{Scientific Reports}, vol.~12, no.~1, p.~19283, 2022.
+\bibitem{albelali2024}
+S.~Albelali and M.~Ahmed, ``Hidden leaks in time series forecasting: How data leakage affects LSTM evaluation across configurations and validation strategies,'' arXiv preprint arXiv:2512.06932, 2024.
+
+\bibitem{garciacrespi2026}
+F.~Garc{\'i}a Crespi, E.~Yubero Funes, and M.~Alfosea Sim{\'o}n, ``Rolling-origin validation reverses model rankings in multi-step PM$_{10}$ forecasting: XGBoost, SARIMA, and persistence,'' arXiv preprint arXiv:2603.20315, 2026.
+
+\bibitem{xie2025}
+Y.~Xie and S.~P.~Tummala, ``Machine learning for sensor analytics: A comprehensive review and benchmark of boosting algorithms in healthcare, environmental, and energy applications,'' \emph{Sensors}, 2025, PMC12694449.
 
 \bibitem{diebold1995}
 F.~X.~Diebold and R.~S.~Mariano, ``Comparing predictive accuracy,'' \emph{Journal of Business \& Economic Statistics}, vol.~13, no.~3, pp.~253--263, 1995.
