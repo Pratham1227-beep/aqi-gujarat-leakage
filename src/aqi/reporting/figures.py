@@ -167,7 +167,7 @@ def plot_fig5_horizon_decay(df: pd.DataFrame, out_dir: Path) -> None:
         if ax != axes[0]:
             ax.legend().remove()
         else:
-            ax.legend(title="Model", loc="upper left", fontsize=8, framealpha=0.9)
+            ax.legend(title="Model", loc="upper left", fontsize=8, frameon=True, facecolor="white", edgecolor="0.8", framealpha=1.0)
 
     fig.suptitle("Degradation of Forecast Skill Across Lead Times ($h=1$ vs $h=3$)", fontsize=13, fontweight="bold", y=1.02)
     fig.tight_layout()
