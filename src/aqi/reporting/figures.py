@@ -46,17 +46,21 @@ def plot_fig1_leakage_inflation(df: pd.DataFrame, out_dir: Path) -> None:
     ax1.set_ylabel("$R^2$ Score")
     ax1.set_xlabel("")
     ax1.set_ylim(-0.05, 1.05)
-    ax1.legend(title="Validation Setup", loc="upper right", framealpha=0.9)
+    if ax1.get_legend() is not None:
+        ax1.get_legend().remove()
 
     sns.barplot(data=combined, x="model", y="mae", hue="setup", palette="Set1", ax=ax2)
     ax2.set_title("Mean Absolute Error (Lower is Better)", fontsize=11, fontweight="bold")
     ax2.set_ylabel("MAE (AQI Points)")
     ax2.set_xlabel("")
     ax2.set_ylim(0, 38)
-    ax2.legend(title="Validation Setup", loc="upper left", framealpha=0.9)
+    if ax2.get_legend() is not None:
+        ax2.get_legend().remove()
 
-    fig.suptitle("Impact of Methodological Leakage in Ahmedabad AQI Modeling", fontsize=13, fontweight="bold", y=1.02)
-    fig.tight_layout()
+    handles, labels = ax1.get_legend_handles_labels()
+    fig.legend(handles, labels, title="Validation Setup", loc="upper center", ncol=3, frameon=True, framealpha=0.95, bbox_to_anchor=(0.5, 0.96))
+    fig.suptitle("Impact of Methodological Leakage in Ahmedabad AQI Modeling", fontsize=13, fontweight="bold", y=1.05)
+    fig.tight_layout(rect=[0, 0, 1, 0.86])
     fig.savefig(out_dir / "fig1_leakage_inflation.png", bbox_inches="tight")
     fig.savefig(out_dir / "fig1_leakage_inflation.pdf", bbox_inches="tight")
     plt.close(fig)
