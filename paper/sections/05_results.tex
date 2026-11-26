@@ -4,7 +4,7 @@
 
 \subsection{Empirical Audit of Leakage Inflation}
 \label{sec:leakage_results}
-Table~\ref{tab:leakage_inflation} presents model performance in Ahmedabad across Setups~A, B, and C, isolating the impact of each leakage mechanism. Figure~\ref{fig:leakage_inflation} visualises the resulting performance trajectories.
+Table~\ref{tab:leakage_inflation} presents model performance in Ahmedabad across Setups~A, B, and C, isolating the impact of each leakage mechanism and visualising the resulting performance trajectories (Figure~\ref{fig:leakage_inflation}).
 
 \input{../results/tables/table3_inflation.tex}
 
@@ -21,7 +21,7 @@ The divergence between Setup~B and Setup~C illuminates the consequence of featur
 
 \subsection{Leak-Free Next-Day Benchmark (\texorpdfstring{$h=1$}{h=1})}
 \label{sec:h1_results}
-Table~\ref{tab:main_benchmark_h1} documents next-day forecasting performance under leak-free Setup~C for the two anchor cities (Ahmedabad and Chennai). Figure~\ref{fig:model_comparison} illustrates model error distributions alongside 95\% stationary block-bootstrap confidence intervals.
+Table~\ref{tab:main_benchmark_h1} documents next-day forecasting performance under leak-free Setup~C for the two anchor cities (Ahmedabad and Chennai), alongside model error distributions and 95\% stationary block-bootstrap confidence intervals (Figure~\ref{fig:model_comparison}).
 
 \input{../results/tables/table2_main.tex}
 
@@ -53,7 +53,7 @@ Cross-city analysis reveals three distinct operational regimes:
 
 \subsection{Multi-Step Horizon Degradation (\texorpdfstring{$h=1$ vs. $h=3$}{h=1 vs h=3})}
 \label{sec:horizons_results}
-Table~\ref{tab:horizon_degradation} documents error growth as the forecast lead time extends from next-day ($h=1$) to three-day ahead ($h=3$). Figure~\ref{fig:forecast_trajectory} plots observed versus predicted trajectories in Ahmedabad, and Figure~\ref{fig:horizon_decay} illustrates horizon degradation rates across all cities.
+Table~\ref{tab:horizon_degradation} documents error growth as the forecast lead time extends from next-day ($h=1$) to three-day ahead ($h=3$), alongside observed versus predicted trajectories in Ahmedabad (Figure~\ref{fig:forecast_trajectory}) and horizon degradation rates across all cities (Figure~\ref{fig:horizon_decay}).
 
 \input{../results/tables/table5_horizons.tex}
 
@@ -77,7 +77,7 @@ Consequently, machine learning models demonstrate genuine utility at extended le
 
 \subsection{Diebold-Mariano Test Synthesis}
 \label{sec:dm_synthesis}
-Figure~\ref{fig:diebold_mariano} presents a comprehensive heatmap of Diebold-Mariano $p$-values across all evaluated city, model, and horizon configurations under Setup~C.
+The Diebold-Mariano $p$-values across all evaluated city, model, and horizon configurations under Setup~C are summarised in a comprehensive heatmap (Figure~\ref{fig:diebold_mariano}).
 
 \begin{figure}[htbp]
   \centering
