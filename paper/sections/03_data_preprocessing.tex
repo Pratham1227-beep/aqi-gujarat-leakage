@@ -1,0 +1,27 @@
+%% ════════════════════════════════════════════════════════════════════════════
+\section{Data and Preprocessing}
+\label{sec:data}
+
+\subsection{Data Sources and Provenance}
+We integrate two official, open data repositories published under the statutory framework of India's CPCB:
+\begin{enumerate}
+  \item \textbf{CPCB Daily Air Quality Bulletins (2015--2023):} Official 4:00~PM bulletin reports published daily across all monitored municipal centres, archived on Zenodo (DOI: \href{https://doi.org/10.5281/zenodo.11146316}{10.5281/zenodo.11146316}; 299,974 records). Each bulletin reports the official municipal ``Index Value'', calculated according to CPCB guidelines based on active CAAQMS stations. This official index forms our primary target variable $\yt$.
+  \item \textbf{CPCB Station Concentrations (Kaggle CAAQMS Archive):} Daily ambient concentration measurements for the seven criteria pollutants ($PM_{2.5}, PM_{10}, NO_2, SO_2, CO, O_3, NH_3$) spanning 2015--2020. Where station-aggregated AQI values diverged from official bulletins due to unbounded sub-index equations exceeding the theoretical maximum of 500, the official bulletin figure was enforced as the authoritative ground truth.
+\end{enumerate}
+
+\subsection{City Qualification and Regional Scope}
+To evaluate geographical generalization, six municipal centres were qualified based on temporal continuity, data density, and industrial relevance. Table~\ref{tab:city_qualification} details the qualified cities, monitoring intervals, record counts, and assigned experimental roles.
+
+\input{../results/tables/table1_qual.tex}
+
+Ahmedabad and Chennai satisfy the longest historical continuity ($n = 3{,}167$ calendar days) and possess concurrent criteria pollutant measurements, qualifying for all three comparative setups (A, B, and C). Ahmedabad represents inland semi-arid western India, whereas Chennai serves as a maritime southern comparative anchor. Gandhinagar, Ankleshwar, and Vapi qualify from 2019 onward based on official CPCB daily bulletins. Surat, where CAAQMS stations were commissioned in late 2021 ($n = 423$ days; 327 valid observations), serves as a thin-data sensitivity evaluation.
+
+\subsection{Data Cleaning and Leakage Prevention}
+The raw municipal series were standardised and processed through rigorous quality control:
+\begin{itemize}
+  \item \textbf{Physical Boundary Filtering:} Negative values and physically implausible sensor readings outside CPCB technical ranges were flagged and set to missing. In Ahmedabad, ten spurious sensor readings for CO exceeding $100\,\text{mg/m}^3$ were removed.
+  \item \textbf{Continuous Calendar Reindexing:} All city time series were reindexed to a continuous daily calendar. Missing observations in the target variable $\yt$ were recorded as unobserved; they were strictly excluded from loss computation and were never synthetically interpolated.
+  \item \textbf{Strict Pre-Split Feature Imputation:} To guarantee zero lookahead bias, missing input feature values were imputed using training-partition medians only. Imputation statistics were calculated strictly on the training partition and subsequently applied to test observations.
+\end{itemize}
+All validated datasets are archived in binary Parquet format with cryptographic SHA-256 integrity checksums registered in the project manifest.
+

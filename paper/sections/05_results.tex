@@ -1,0 +1,90 @@
+%% ════════════════════════════════════════════════════════════════════════════
+\section{Results}
+\label{sec:results}
+
+\subsection{Empirical Audit of Leakage Inflation}
+\label{sec:leakage_results}
+Table~\ref{tab:leakage_inflation} presents model performance in Ahmedabad across Setups~A, B, and C, isolating the impact of each leakage mechanism. Figure~\ref{fig:leakage_inflation} visualises the resulting performance trajectories.
+
+\input{../results/tables/table3_inflation.tex}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{../results/figures/fig1_leakage_inflation.pdf}
+  \caption{Leakage inflation in Ahmedabad across Setups~A, B, and C for $R^2$ (left) and MAE (right). Chronological splitting eliminates autocorrelation leakage; Setup~C isolates true forward forecasting error.}
+  \label{fig:leakage_inflation}
+\end{figure}
+
+The transition from Setup~A to Setup~B demonstrates the distorting power of random train-test splitting on autocorrelated series. In Setup~A (random splitting with concurrent inputs), Random Forest achieved an apparent $R^2$ of \textbf{0.815} ($\text{MAE} = 18.50$), consistent with published claims in the literature. However, when evaluated on the identical feature space split chronologically (Setup~B), Random Forest collapsed to an $R^2$ of \textbf{0.015} ($\text{MAE} = 30.49$) -- a \textbf{98\% loss in explained variance} ($\Delta R^2 = +0.800$). Ridge Regression exhibited an analogous collapse from $R^2 = 0.715$ to $0.166$ ($\Delta R^2 = +0.548$).
+
+The divergence between Setup~B and Setup~C illuminates the consequence of feature formulation. In Setup~B, concurrent chemical inputs provide contemporaneous correlations that fail to generalize out-of-sample forward in time ($\text{MAE} = 30.49$). In Setup~C, with strictly historical autoregressive lags and rolling statistics, Random Forest stabilized at $\text{MAE} = 20.73$ ($R^2 = 0.505$). This confirms that while lagged autoregressive signals provide modest predictive power, concurrent inputs generate spurious correlations that actively degrade chronological generalization.
+
+\subsection{Leak-Free Next-Day Benchmark (\texorpdfstring{$h=1$}{h=1})}
+\label{sec:h1_results}
+Table~\ref{tab:main_benchmark_h1} documents next-day forecasting performance under leak-free Setup~C for the two anchor cities (Ahmedabad and Chennai). Figure~\ref{fig:model_comparison} illustrates model error distributions alongside 95\% stationary block-bootstrap confidence intervals.
+
+\input{../results/tables/table2_main.tex}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{../results/figures/fig2_model_comparison_h1.pdf}
+  \caption{Next-day ($h=1$) MAE across models and cities under Setup~C. All models fail to surpass Persistence except in coastal Chennai.}
+  \label{fig:model_comparison}
+\end{figure}
+
+\paragraph{Ahmedabad.}
+The naive Persistence baseline achieved an MAE of \textbf{20.21} ($R^2 = 0.462$). While the 7-day Moving Average achieved an MAE of \textbf{20.01} ($+1.0\%$ skill), this difference was statistically indistinguishable from zero ($p = 0.766$ via Diebold-Mariano). Crucially, every evaluated machine learning model (Random Forest, XGBoost, and Ridge Regression) yielded negative skill scores relative to Persistence: Random Forest attained $\text{MAE} = 20.73$ ($\text{Skill} = -0.026, p = 0.510$), Ridge attained $\text{MAE} = 20.83$ ($\text{Skill} = -0.031, p = 0.402$), and XGBoost attained $\text{MAE} = 20.91$ ($\text{Skill} = -0.034, p = 0.419$). Under the frequentist Diebold-Mariano test with Newey-West HAC covariance estimation ($p > 0.40$), none of the machine learning forecasters statistically significantly outperformed the naive Persistence baseline.
+
+\paragraph{Chennai.}
+Chennai exhibited a fundamentally different atmospheric regime. In this coastal metropolis, maritime boundary layer circulation and diurnal sea-breeze reversals weaken day-to-day AQI inertia ($\text{Persistence } R^2 = -0.034, \text{MAE} = 17.90$). Here, machine learning models established clear, statistically significant predictive skill: Random Forest reduced MAE to \textbf{15.84} ($+11.5\%$ skill, $p = 0.002$), XGBoost achieved $\text{MAE} = 16.11$ ($+10.0\%$ skill, $p = 0.001$), and Ridge attained $\text{MAE} = 16.18$ ($+9.6\%$ skill, $p = 0.010$).
+
+\subsection{Cross-City Evaluation Across Gujarat}
+\label{sec:multicity_results}
+Table~\ref{tab:cross_city_mae} expands the leak-free Setup~C next-day benchmark across all six evaluated cities.
+
+\input{../results/tables/table4_multicity.tex}
+
+Cross-city analysis reveals three distinct operational regimes:
+\begin{enumerate}
+  \item \textbf{Persistence Dominance (Ahmedabad, Gandhinagar):} In urban continental Gujarat, high day-to-day autocorrelation ($\rho_1 > 0.80$) renders yesterday's AQI a near-optimal predictor. In Gandhinagar, Ridge Regression achieved $\text{MAE} = 23.43$ versus Persistence $\text{MAE} = 23.88$ ($p = 0.590$); Random Forest and XGBoost performed worse than Persistence ($p = 0.143$ and $p = 0.539$).
+  \item \textbf{Persistence Superiority (Vapi):} In the chemical industrial corridor of Vapi, Persistence ($\text{MAE} = \mathbf{18.98}, R^2 = 0.813$) was \emph{statistically significantly superior} to both Random Forest ($\text{MAE} = 25.02, p < 0.001$) and XGBoost ($\text{MAE} = 25.13, p = 0.001$). Highly episodic, localized industrial emissions create abrupt spikes; tree ensembles overfit to these transient shocks during training, causing severe over-prediction errors on subsequent standard days.
+  \item \textbf{Marginal or Data-Limited Utility (Ankleshwar, Surat):} In Ankleshwar, the 7-day Moving Average achieved a marginal advantage over Persistence ($\text{MAE} = 30.76$ vs. $33.53, p = 0.048$). In Surat, where the monitoring record is short ($n = 327$ valid days), high variance prevented any model from achieving statistical significance at $h=1$ ($p \ge 0.236$).
+\end{enumerate}
+
+\subsection{Multi-Step Horizon Degradation (\texorpdfstring{$h=1$ vs. $h=3$}{h=1 vs h=3})}
+\label{sec:horizons_results}
+Table~\ref{tab:horizon_degradation} documents error growth as the forecast lead time extends from next-day ($h=1$) to three-day ahead ($h=3$). Figure~\ref{fig:forecast_trajectory} plots observed versus predicted trajectories in Ahmedabad, and Figure~\ref{fig:horizon_decay} illustrates horizon degradation rates across all cities.
+
+\input{../results/tables/table5_horizons.tex}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{../results/figures/fig3_forecast_trajectory.pdf}
+  \caption{Next-day predicted versus observed AQI trajectories for Ahmedabad over a 90-day operational test window under Setup~C.}
+  \label{fig:forecast_trajectory}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{../results/figures/fig5_horizon_decay.pdf}
+  \caption{Horizon degradation from $h=1$ to $h=3$ across cities under Setup~C. Persistence error increases faster than multi-lag linear and moving-average models.}
+  \label{fig:horizon_decay}
+\end{figure}
+
+As the forecast horizon extends to $h=3$, the predictive power of single-step persistence decays rapidly: in Gandhinagar, Persistence MAE degrades by $+29.6\%$ (from $23.88$ to $30.96$); in Vapi, it degrades by $+25.7\%$ (from $18.98$ to $23.86$). In contrast, multi-lag models and rolling averages degrade by only $5\%$ to $12\%$.
+
+Consequently, machine learning models demonstrate genuine utility at extended lead times: in Gandhinagar at $h=3$, Ridge Regression achieved an MAE of \textbf{27.89} versus Persistence \textbf{30.96}, yielding a statistically significant $+9.9\%$ skill improvement ($p = 0.022$). Similarly, in Surat at $h=3$, Ridge achieved $\text{MAE} = \mathbf{44.05}$ versus Persistence \textbf{56.61} ($+22.2\%$ skill, $p = 0.024$). This indicates that while machine learning is largely redundant for next-day predictions in high-inertia inland regions, it provides verifiable value at multi-day lead times where autocorrelation has decayed.
+
+\subsection{Diebold-Mariano Test Synthesis}
+\label{sec:dm_synthesis}
+Figure~\ref{fig:diebold_mariano} presents a comprehensive heatmap of Diebold-Mariano $p$-values across all evaluated city, model, and horizon configurations under Setup~C.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{../results/figures/fig4_diebold_mariano.pdf}
+  \caption{Diebold-Mariano test $p$-values comparing candidate forecasters to Persistence under Setup~C ($h=1$). Green indicates significant model superiority ($p < 0.05$); dark blue indicates Persistence dominance.}
+  \label{fig:diebold_mariano}
+\end{figure}
+
+Across 60 pairwise comparisons (6 cities $\times$ 5 candidate models $\times$ 2 horizons), only 9 configurations establish statistically significant differences ($p < 0.05$) in favour of the candidate model -- concentrated predominantly in coastal Chennai ($h=1$ and $h=3$) and extended-horizon forecasts in Gandhinagar and Surat ($h=3$). Conversely, 5 tests indicate that Persistence is \emph{statistically superior} to machine learning models (all occurring in Vapi). Applying a conservative Bonferroni correction for multiple hypothesis testing ($\alpha = 0.05 / 60 = 0.00083$), only the superior performance of tree models in Chennai and the superiority of Persistence in Vapi remain statistically significant.
+

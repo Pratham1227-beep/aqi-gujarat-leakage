@@ -1,0 +1,56 @@
+%% ════════════════════════════════════════════════════════════════════════════
+\section{Methodology}
+\label{sec:method}
+
+\subsection{Experimental Setups}
+To decouple the components of predictive performance and quantify artificial inflation, we define three nested experimental configurations executed over identical data partitions:
+
+\begin{description}
+  \item[Setup A (Random Split, Concurrent Inputs):] Features consist of concurrent same-day criteria pollutant concentrations $\{PM_{2.5,t}, PM_{10,t}, NO_{2,t}, SO_{2,t}, CO_t, O_{3,t}, NH_{3,t}\}$ and calendar harmonic encodings. Training and test samples are randomly partitioned via an 80/20 ratio across 10 independent random seeds. This mirrors the prevailing setup in published literature and captures the combined effect of concurrent input leakage and autocorrelation leakage.
+  \item[Setup B (Chronological Split, Concurrent Inputs):] Utilises the identical concurrent feature matrix as Setup~A, but enforces a strict chronological 80/20 partition: the initial 80\% of calendar days form the training set, and the final 20\% form the test set. By holding the feature set constant while restoring temporal ordering, Setup~B isolates the precise inflation attributable to random splitting.
+  \item[Setup C (Rolling-Origin, Strictly Lagged Inputs):] Evaluates true advance forecasting ($h=1$ and $h=3$ days ahead). Predictor variables $X_t$ are restricted strictly to information recorded at or prior to forecast origin $t$. Models are evaluated over the final 20\% temporal window using an expanding training origin refit every 30 calendar days.
+\end{description}
+
+\subsection{Feature Engineering and Runtime Leakage Guards}
+For Setup~C, a 29-dimensional feature vector was engineered from strictly historical information:
+\begin{itemize}
+  \item \textbf{Autoregressive Target Lags:} $\{y_t, y_{t-1}, y_{t-2}, y_{t-6}, y_{t-13}\}$ (indexed strictly relative to forecast origin $t$).
+  \item \textbf{Lagged Criteria Pollutants:} 1, 2, 3, and 7-day lagged concentrations of available criteria pollutants.
+  \item \textbf{Rolling Historical Statistics:} 3, 7, 14, and 30-day backward-looking rolling means and standard deviations of AQI.
+  \item \textbf{Calendar Harmonic Encodings:} Cyclical sine and cosine transformations of day-of-week, month, and day-of-year corresponding to the target forecast date $t+h$.
+\end{itemize}
+
+To enforce pipeline integrity, the codebase embeds three runtime automated leakage guards:
+\begin{enumerate}
+  \item \emph{Temporal Separation Guard:} Formally asserts $\max(\text{train\_dates}) < \min(\text{test\_dates})$ across all evaluation folds.
+  \item \emph{Planted-Leak Detector:} Computes pairwise correlations between all candidate features and out-of-sample targets, raising an exception if any feature achieves $|r| \ge 0.9999$.
+  \item \emph{Shuffled-Target Falsification Guard:} Verifies that randomly permuting the training target vector completely destroys predictive performance ($R^2 \le 0.05$).
+\end{enumerate}
+
+\subsection{Candidate Forecasters}
+We benchmark five forecasters spanning classical naive baselines, linear regularised estimators, and nonlinear ensemble architectures:
+\begin{enumerate}
+  \item \textbf{Persistence Baseline:} Assumes zero atmospheric change: $\hat{y}_{t+h} = y_t$.
+  \item \textbf{Seasonal Naive Baseline:} Projects the value from the identical day of the preceding week: $\hat{y}_{t+h} = y_{t-7+h}$.
+  \item \textbf{7-Day Moving Average:} Projects the unweighted mean of the preceding week: $\hat{y}_{t+h} = \frac{1}{7}\sum_{k=0}^{6} y_{t-k}$.
+  \item \textbf{Ridge Regression:} $L_2$-regularised linear model ($\alpha = 1.0$) trained on standard-scaled lagged predictors.
+  \item \textbf{Random Forest:} Ensemble of 100 decision trees, $\text{max\_features} = \sqrt{p}$, $\text{min\_samples\_leaf} = 5$.
+  \item \textbf{XGBoost:} Gradient boosted trees (100 estimators, learning rate $\eta = 0.1$, max depth $= 4$, subsample ratio $= 0.8$).
+\end{enumerate}
+Hyperparameters were established based on environmental machine learning conventions and held fixed across all cities to eliminate post-hoc tuning leakage.
+
+\subsection{Evaluation Metrics and Hypothesis Testing}
+Primary predictive accuracy is measured using Mean Absolute Error (MAE), supplemented by Root Mean Squared Error (RMSE) and $R^2$. To account for serial correlation in error residuals, 95\% confidence intervals for MAE are estimated via the stationary block bootstrap ($B = 1{,}000$ iterations, block length $b = 7$ days matching the empirical weekly autocorrelation cycle).
+
+To test whether model improvements over Persistence are statistically significant, we deploy the two-tailed \textbf{Diebold-Mariano (DM) test} \cite{diebold1995}. Let $e_{1,t} = y_{t+h} - \hat{y}_{1,t+h}$ denote the error of the Persistence baseline, and let $e_{2,t} = y_{t+h} - \hat{y}_{2,t+h}$ denote the error of the candidate model. The loss differential under absolute loss is:
+\begin{equation}
+  d_t = |e_{1,t}| - |e_{2,t}|
+  \label{eq:dm_diff}
+\end{equation}
+The DM test statistic is:
+\begin{equation}
+  \text{DM} = \frac{\bar{d}}{\sqrt{\hat{V}(\bar{d})}}
+  \label{eq:dm_stat}
+\end{equation}
+where $\bar{d} = \frac{1}{T}\sum_{t=1}^T d_t$, and $\hat{V}(\bar{d})$ is the heteroskedasticity- and autocorrelation-consistent (HAC) Newey-West variance estimator with lag truncation bandwidth $k = h - 1$. Under the null hypothesis of equal forecast accuracy ($H_0: E[d_t] = 0$), the statistic converges to a standard normal distribution, $\text{DM} \sim \mathcal{N}(0, 1)$. Two-tailed $p$-values below $0.05$ indicate statistically significant differences in predictive accuracy.
+
