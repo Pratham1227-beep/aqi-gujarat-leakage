@@ -12,12 +12,12 @@ To decouple the components of predictive performance and quantify artificial inf
 \end{description}
 
 \subsection{Feature Engineering and Runtime Leakage Guards}
-For Setup~C, a 29-dimensional feature vector was engineered from strictly historical information:
+For Setup~C, a unified 49-column feature schema was engineered from strictly historical information:
 \begin{itemize}
   \item \textbf{Autoregressive Target Lags:} $\{y_t, y_{t-1}, y_{t-2}, y_{t-6}, y_{t-13}\}$ (indexed strictly relative to forecast origin $t$).
-  \item \textbf{Lagged Criteria Pollutants:} 1, 2, 3, and 7-day lagged concentrations of available criteria pollutants.
-  \item \textbf{Rolling Historical Statistics:} 3, 7, 14, and 30-day backward-looking rolling means and standard deviations of AQI.
-  \item \textbf{Calendar Harmonic Encodings:} Cyclical sine and cosine transformations of day-of-week, month, and day-of-year corresponding to the target forecast date $t+h$.
+  \item \textbf{Lagged Criteria Pollutants:} 1, 2, 3, and 7-day lagged concentrations of the seven criteria pollutants (28 columns). In the four cities without Kaggle pollutant records (Gandhinagar, Ankleshwar, Surat, Vapi), these 28 columns are entirely missing and imputed/zero-filled, leaving 21 active AQI-lag, rolling-statistic, and calendar features. Moreover, because Kaggle pollutant records end in 2020, these 28 pollutant-lag columns are also missing and imputed during the 2022--2023 Setup~C test windows for Ahmedabad and Chennai.
+  \item \textbf{Rolling Historical Statistics:} 3, 7, 14, and 30-day backward-looking rolling means and standard deviations of AQI (8 columns).
+  \item \textbf{Calendar Harmonic Encodings:} Cyclical sine and cosine transformations of day-of-week, month, and day-of-year corresponding to the target forecast date $t+h$, plus day-of-week/weekend indicators (8 columns).
 \end{itemize}
 
 To enforce pipeline integrity, the codebase embeds three runtime automated leakage guards:
@@ -28,7 +28,7 @@ To enforce pipeline integrity, the codebase embeds three runtime automated leaka
 \end{enumerate}
 
 \subsection{Candidate Forecasters}
-We benchmark six forecasters spanning classical naive baselines, linear regularised estimators, and nonlinear ensemble architectures:
+We benchmark six primary forecasters spanning classical naive baselines, linear regularised estimators, and nonlinear ensemble architectures:
 \begin{enumerate}
   \item \textbf{Persistence Baseline:} Assumes zero atmospheric change: $\hat{y}_{t+h} = y_t$.
   \item \textbf{Seasonal Naive Baseline:} Projects the value from the identical day of the preceding week: $\hat{y}_{t+h} = y_{t-7+h}$.
@@ -37,7 +37,7 @@ We benchmark six forecasters spanning classical naive baselines, linear regulari
   \item \textbf{Random Forest:} Ensemble of 100 decision trees, $\text{max\_features} = \sqrt{p}$, $\text{min\_samples\_leaf} = 5$.
   \item \textbf{XGBoost:} Gradient boosted trees (100 estimators, learning rate $\eta = 0.1$, max depth $= 4$, subsample ratio $= 0.8$).
 \end{enumerate}
-Hyperparameters were established based on environmental machine learning conventions and held fixed across all cities to eliminate post-hoc tuning leakage.
+Primary hyperparameters were established based on environmental machine learning conventions and held fixed across all cities to eliminate post-hoc tuning leakage; to test sensitivity to fixed defaults, we also report a 3-fold \texttt{TimeSeriesSplit} tuned check on Ahmedabad in Section~\ref{sec:dm_synthesis}. In addition, to ensure ML models are compared against standard statistical benchmarks at $h=1$, we evaluate four supplementary classical baselines refit at the identical 30-day expanding cadence: (7)~\textbf{Monthly Climatology} (historical mean for the target calendar month computed on the expanding training fold), (8)~\textbf{Climatology+Persistence} (an unweighted 50/50 blend), (9)~\textbf{ARIMA(1,0,0)} (an AR(1) model fit on the expanding training series and rolled forward one step from $y_t$), and (10)~\textbf{ETS (Simple Exponential Smoothing)} with estimated smoothing level $\alpha$.
 
 \subsection{Evaluation Metrics and Hypothesis Testing}
 Primary predictive accuracy is measured using Mean Absolute Error (MAE), supplemented by Root Mean Squared Error (RMSE) and $R^2$. Band Accuracy (Band Acc) measures the fraction of predictions that fall within the same CPCB categorical AQI band as the observed value (Good, Satisfactory, Moderate, Poor, Very Poor, or Severe). To account for serial correlation in error residuals, 95\% confidence intervals for MAE are estimated via the moving block bootstrap ($B = 1{,}000$ resamples, block length $b = 7$ days matching the empirical weekly cycle).
@@ -54,5 +54,5 @@ The DM test statistic is:
   \text{DM} = \frac{\bar{d}}{\sqrt{\hat{V}(\bar{d})}}
   \label{eq:dm_stat}
 \end{equation}
-where $\bar{d} = \frac{1}{T}\sum_{t=1}^T d_t$, and $\hat{V}(\bar{d})$ is the heteroskedasticity- and autocorrelation-consistent (HAC) Newey-West variance estimator with lag truncation bandwidth $k = h - 1$. At $h=1$, $k=0$ and no autocorrelation correction is applied to the variance; the DM test reduces to a standard $t$-test on the loss differentials. At $h=3$, $k=2$ lags are included, providing correction for the serial dependence induced by overlapping multi-step forecast errors. Under the null hypothesis of equal forecast accuracy ($H_0: E[d_t] = 0$), the statistic converges to a standard normal distribution, $\text{DM} \sim \mathcal{N}(0, 1)$. Two-tailed $p$-values below $0.05$ indicate statistically significant differences in predictive accuracy.
+where $\bar{d} = \frac{1}{T}\sum_{t=1}^T d_t$, and $\hat{V}(\bar{d})$ is the rectangular autocovariance-truncated variance estimator up to lag $k = h - 1$ with the Harvey--Leybourne--Newbold (HLN) small-sample correction. At $h=1$, $k=0$ and no autocorrelation correction is applied; the test reduces to an HLN small-sample corrected $t$-test on the loss differentials. At $h=3$, $k=2$ lags are included to account for overlapping multi-step forecast dependence. As a sensitivity check at $h=1$, we also evaluate $k=3$ lags. Under the null hypothesis of equal forecast accuracy ($H_0: E[d_t] = 0$), the HLN-corrected statistic is referenced against a Student-$t$ distribution with $T - 1$ degrees of freedom. Two-tailed $p$-values below $0.05$ indicate nominally significant differences; for the primary family of 60 candidate-vs-Persistence comparisons (6 cities $\times$ 5 primary candidates $\times$ 2 horizons), the Bonferroni-corrected threshold is $\alpha = 0.05 / 60 = 0.00083$.
 
