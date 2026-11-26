@@ -35,22 +35,25 @@ def plot_fig1_leakage_inflation(df: pd.DataFrame, out_dir: Path) -> None:
     c_df["setup"] = "Setup C (Rolling)"
 
     combined = pd.concat([a_df, b_df, c_df], ignore_index=True)
-    combined["model"] = combined["model"].str.replace("_", " ").str.title()
+    combined["model"] = combined["model"].str.replace("_", " ").str.title().str.replace("Xgboost", "XGBoost")
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5), facecolor="white")
+    ax1.set_facecolor("white")
+    ax2.set_facecolor("white")
 
     sns.barplot(data=combined, x="model", y="r2", hue="setup", palette="Set1", ax=ax1)
     ax1.set_title("Variance Explained ($R^2$ Collapse)", fontsize=11, fontweight="bold")
     ax1.set_ylabel("$R^2$ Score")
     ax1.set_xlabel("")
-    ax1.set_ylim(-0.05, 1.0)
-    ax1.legend(title="Validation Setup", loc="upper right")
+    ax1.set_ylim(-0.05, 1.05)
+    ax1.legend(title="Validation Setup", loc="upper right", framealpha=0.9)
 
     sns.barplot(data=combined, x="model", y="mae", hue="setup", palette="Set1", ax=ax2)
     ax2.set_title("Mean Absolute Error (Lower is Better)", fontsize=11, fontweight="bold")
     ax2.set_ylabel("MAE (AQI Points)")
     ax2.set_xlabel("")
-    ax2.legend(title="Validation Setup", loc="upper right")
+    ax2.set_ylim(0, 38)
+    ax2.legend(title="Validation Setup", loc="upper left", framealpha=0.9)
 
     fig.suptitle("Impact of Methodological Leakage in Ahmedabad AQI Modeling", fontsize=13, fontweight="bold", y=1.02)
     fig.tight_layout()
@@ -64,16 +67,17 @@ def plot_fig2_model_comparison_h1(df: pd.DataFrame, out_dir: Path) -> None:
     """Figure 2: Setup C (h=1) model comparison vs Persistence baseline across cities."""
     sub = df[(df["setup"] == "C") & (df["horizon"] == 1)].copy()
     sub["city"] = sub["city"].str.capitalize()
-    sub["model"] = sub["model"].str.replace("_", " ").str.title()
+    sub["model"] = sub["model"].str.replace("_", " ").str.title().str.replace("Xgboost", "XGBoost")
 
-    fig, ax = plt.subplots(figsize=(12, 5))
+    fig, ax = plt.subplots(figsize=(12, 5), facecolor="white")
+    ax.set_facecolor("white")
     palette = sns.color_palette("tab10", n_colors=sub["model"].nunique())
     
     sns.barplot(data=sub, x="city", y="mae", hue="model", palette=palette, ax=ax)
     ax.set_title("Next-Day ($t+1$) MAE Across Gujarat Cities and Chennai (Setup C)", fontsize=12, fontweight="bold")
     ax.set_ylabel("Mean Absolute Error (AQI Points)")
     ax.set_xlabel("City")
-    ax.legend(title="Model", bbox_to_anchor=(1.01, 1), loc="upper left")
+    ax.legend(title="Model", bbox_to_anchor=(1.01, 1), loc="upper left", framealpha=0.9)
 
     fig.tight_layout()
     fig.savefig(out_dir / "fig2_model_comparison_h1.png", bbox_inches="tight")
@@ -100,7 +104,8 @@ def plot_fig3_forecast_trajectory(preds_dir: Path, out_dir: Path) -> None:
     n = min(len(df_pers), 90)
     idx = range(n)
 
-    fig, ax = plt.subplots(figsize=(12, 4.5))
+    fig, ax = plt.subplots(figsize=(12, 4.5), facecolor="white")
+    ax.set_facecolor("white")
     ax.plot(idx, df_pers["y_true"].iloc[:n], label="Official CPCB AQI", color="black", lw=2)
     ax.plot(idx, df_pers["y_pred"].iloc[:n], label="Persistence Forecaster", color="#1f77b4", ls="--", lw=1.5)
     ax.plot(idx, df_rf["y_pred"].iloc[:n], label="Random Forest", color="#2ca02c", alpha=0.8, lw=1.5)
@@ -109,7 +114,8 @@ def plot_fig3_forecast_trajectory(preds_dir: Path, out_dir: Path) -> None:
     ax.set_title("Ahmedabad Next-Day Forecast Trajectory (90-Day Operational Test Window)", fontsize=12, fontweight="bold")
     ax.set_xlabel("Consecutive Forecast Days")
     ax.set_ylabel("AQI Value")
-    ax.legend(loc="upper right", frameon=True)
+    # Position legend in upper left to avoid overlapping peaks (per expert review)
+    ax.legend(loc="upper left", frameon=True, framealpha=0.9)
 
     fig.tight_layout()
     fig.savefig(out_dir / "fig3_forecast_trajectory.png", bbox_inches="tight")
@@ -122,10 +128,11 @@ def plot_fig4_diebold_mariano(df: pd.DataFrame, out_dir: Path) -> None:
     """Figure 4: Diebold-Mariano test p-values comparing models to Persistence."""
     sub = df[(df["setup"] == "C") & (df["horizon"] == 1) & (df["model"] != "persistence")].copy()
     sub["city"] = sub["city"].str.capitalize()
-    sub["model"] = sub["model"].str.replace("_", " ").str.title()
+    sub["model"] = sub["model"].str.replace("_", " ").str.title().str.replace("Xgboost", "XGBoost")
     pivot = sub.pivot(index="city", columns="model", values="dm_p")
 
-    fig, ax = plt.subplots(figsize=(8, 4.5))
+    fig, ax = plt.subplots(figsize=(8, 4.5), facecolor="white")
+    ax.set_facecolor("white")
     sns.heatmap(pivot, annot=True, fmt=".3f", cmap="YlGnBu_r", cbar_kws={"label": "DM p-value"}, ax=ax, vmin=0, vmax=1)
     ax.set_title("Diebold-Mariano Test p-values vs Persistence (Setup C, $h=1$)\nValues < 0.05 indicate statistical superiority", fontsize=11, fontweight="bold")
     ax.set_xlabel("Model")
@@ -142,9 +149,11 @@ def plot_fig5_horizon_decay(df: pd.DataFrame, out_dir: Path) -> None:
     """Figure 5: Forecast decay from h=1 to h=3 across cities."""
     sub = df[df["setup"] == "C"].copy()
     sub["city"] = sub["city"].str.capitalize()
-    sub["model"] = sub["model"].str.replace("_", " ").str.title()
+    sub["model"] = sub["model"].str.replace("_", " ").str.title().str.replace("Xgboost", "XGBoost")
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), sharey=True, facecolor="white")
+    axes[0].set_facecolor("white")
+    axes[1].set_facecolor("white")
     for ax, h in zip(axes, [1, 3], strict=False):
         h_df = sub[sub["horizon"] == h]
         sns.barplot(data=h_df, x="city", y="mae", hue="model", ax=ax)
@@ -154,7 +163,7 @@ def plot_fig5_horizon_decay(df: pd.DataFrame, out_dir: Path) -> None:
         if ax != axes[0]:
             ax.legend().remove()
         else:
-            ax.legend(title="Model", loc="upper left", fontsize=8)
+            ax.legend(title="Model", loc="upper left", fontsize=8, framealpha=0.9)
 
     fig.suptitle("Degradation of Forecast Skill Across Lead Times ($h=1$ vs $h=3$)", fontsize=13, fontweight="bold", y=1.02)
     fig.tight_layout()

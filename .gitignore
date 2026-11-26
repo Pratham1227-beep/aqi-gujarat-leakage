@@ -17,12 +17,15 @@ results/figures/*
 scratch/
 *.pt
 *.pth
+# Environments and IDE
 .venv/
 __pycache__/
 *.pyc
 .env
 .DS_Store
 .ipynb_checkpoints
+.vscode/
+
 
 # LaTeX build artifacts
 *.aux
@@ -33,11 +36,8 @@ __pycache__/
 *.fdb_latexmk
 *.toc
 
-# LaTeX build artifacts
-*.aux
-*.log
-*.out
-*.synctex*
-*.fls
-*.fdb_latexmk
-*.toc
+# Node / Astro
+site/node_modules/
+site/dist/
+site/.astro/
+

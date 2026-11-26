@@ -1,0 +1,14 @@
+{
+  "name": "aqi-gujarat-docs",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "sync": "node sync-docs.js",
+    "dev": "node sync-docs.js && astro dev",
+    "build": "node sync-docs.js && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.4.2"
+  }
+}

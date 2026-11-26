@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const docs = import.meta.glob('../content/docs/*.md', { eager: true });
+  return Object.entries(docs).map(([filePath, doc]: [string, any]) => {
+    const slug = filePath.split('/').pop()?.replace('.md', '');
+    return {
+      params: { slug },
+      props: { doc, slug }
+    };
+  });
+}
+
+const { doc, slug } = Astro.props;
+const { Content } = doc;
+const title = doc.frontmatter?.title || slug;
+---
+
+<Layout title={title} activeSlug={slug}>
+  <Content />
+</Layout>

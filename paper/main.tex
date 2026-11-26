@@ -60,8 +60,8 @@
 
 %% ── Title Block ────────────────────────────────────────────────────────────
 \title{%
-  \Large\bfseries Benchmarking Machine Learning for Air Quality Forecasting in Gujarat: \\
-  An Empirical Audit of Data Leakage and a Leak-Free Multi-City Evaluation
+  \Large\bfseries Benchmarking Supervised Machine Learning for Next-Day Air Quality Index Forecasting in Gujarat: \\
+  An Empirical Audit of Data Leakage and a Multi-City Evaluation
 }
 
 \author{%
@@ -77,7 +77,7 @@
 %% ── Abstract ────────────────────────────────────────────────────────────────
 \begin{abstract}
 \noindent
-Short-term forecasting of the Air Quality Index (AQI) is essential for timely public health advisories and municipal mitigation measures, especially in rapidly industrialising regions such as Gujarat, India. An expanding body of regional literature reports high machine learning accuracy ($R^2 > 0.80$, percentage errors $< 5\%$) for AQI prediction. However, rigorous examination reveals that these optimistic results stem from two widespread forms of data leakage: \emph{concurrent input leakage}, where same-day pollutant concentrations serve as input features to predict that day's index, and \emph{random-split autocorrelation leakage}, where random train-test splitting allows future observations to inform model training across autocorrelated time series. In this work, we quantify this artificial inflation empirically across five Gujarat cities (Ahmedabad, Gandhinagar, Ankleshwar, Vapi, and Surat) and an anchor coastal city (Chennai) across multi-year continuous observations (2015--2023). We design three nested evaluation protocols: Setup~A (random splitting with concurrent inputs), Setup~B (chronological splitting with concurrent inputs), and Setup~C (rolling-origin validation with strictly lagged historical inputs). For Random Forest in Ahmedabad, reported performance collapses from an apparent $R^2$ of \textbf{0.815} under Setup~A to \textbf{0.015} under Setup~B -- a \textbf{98\% reduction in explained variance} -- isolating the severe distorting effect of autocorrelation leakage. Under our leak-free rolling-origin benchmark (Setup~C, $h=1$), no machine learning model statistically significantly outperforms a simple Persistence baseline ($\hat{y}_{t+1} = y_t$) in four of the six cities according to Diebold-Mariano tests ($p > 0.05$). In Vapi, Persistence is itself \emph{statistically superior} to all complex models ($p < 0.001$). Machine learning demonstrates genuine value only in coastal Chennai ($+11.5\%$ skill, $p = 0.002$) and at multi-day forecast horizons ($h=3$) where atmospheric autocorrelation naturally attenuates. We release our unified codebase, cleaned datasets, and pre-computed evaluation ledgers to establish an open, reproducible standard for Indian atmospheric machine learning.
+Short-term forecasting of the Air Quality Index (AQI) is essential for timely public health advisories and municipal mitigation measures, especially in rapidly industrialising regions such as Gujarat, India. An expanding body of regional literature reports near-perfect predictive accuracy ($R^2 > 0.80$, percentage errors $< 5\%$) for AQI prediction. However, rigorous examination reveals that these optimistic results stem from two widespread forms of data leakage: \emph{concurrent input leakage}, where same-day pollutant concentrations serve as input features to predict that day's index, and \emph{random-split autocorrelation leakage}, where random train-test splitting allows future observations to inform model training across autocorrelated time series. In this work, we quantify this artificial inflation empirically across five Gujarat cities (Ahmedabad, Gandhinagar, Ankleshwar, Vapi, and Surat) and an anchor coastal city (Chennai) across multi-year continuous observations (2015--2023). We design three nested evaluation protocols: Setup~A (random splitting with concurrent inputs), Setup~B (chronological splitting with concurrent inputs), and Setup~C (rolling-origin validation with strictly lagged historical inputs). For Random Forest in Ahmedabad, reported performance collapses from an apparent $R^2$ of \textbf{0.815} under Setup~A to \textbf{0.015} under Setup~B -- a \textbf{98\% reduction in explained variance} -- isolating the severe distorting effect of autocorrelation leakage. Under our leak-free rolling-origin benchmark (Setup~C, $h=1$), no machine learning model statistically significantly outperforms a simple Persistence baseline ($\hat{y}_{t+1} = y_t$) in four of the six cities according to Diebold-Mariano tests ($p > 0.05$). In Vapi, Persistence is itself \emph{statistically superior} to all complex models ($p < 0.001$). Machine learning demonstrates genuine value only in coastal Chennai ($+11.5\%$ skill, $p = 0.002$) and at multi-day forecast horizons ($h=3$) where atmospheric autocorrelation naturally attenuates. We release our unified codebase, cleaned datasets, and pre-computed evaluation ledgers to establish an open, reproducible standard for Indian atmospheric machine learning.
 \end{abstract}
 
 \vspace{0.5em}
@@ -95,15 +95,15 @@ Over the past decade, a surge of applied machine learning literature has investi
 
 In this paper, we argue that these reported results are heavily inflated by methodological flaws in experimental design. Specifically, two systematic modes of data leakage pervade published studies:
 
-\paragraph{1. Concurrent Input Leakage (Nowcasting vs. Forecasting Conflation).}
-The Central Pollution Control Board (CPCB) calculates the official daily AQI as the non-linear algebraic supremum of seven criteria pollutant sub-indices:
+\paragraph{Concurrent Input Leakage (Nowcasting vs. Forecasting Conflation)}
+The Central Pollution Control Board (CPCB) prescribes the official daily AQI as the non-linear algebraic supremum across criteria pollutant sub-indices:
 \begin{equation}
-  \text{AQI}_t = \max_{p \in \mathcal{P}} I_p(C_{p,t}),
+  \text{AQI}_t = \max_{p \in \mathcal{P}} I_p(C_{p,t})
   \label{eq:cpcb_aqi}
 \end{equation}
-where $\mathcal{P} = \{PM_{2.5}, PM_{10}, NO_2, SO_2, CO, O_3, NH_3\}$, $C_{p,t}$ denotes the 24-hour mean concentration of pollutant $p$ on calendar day $t$, and $I_p(\cdot)$ is the segmented linear sub-index conversion function. Numerous applied studies train models where the concurrent pollutant concentrations $\{C_{p,t}\}_{p \in \mathcal{P}}$ serve as independent input variables to predict that same day's index $\text{AQI}_t$ \cite{sharma2020,gulia2015}. Because same-day pollutant concentrations cannot be observed hours or days in advance, this configuration does not represent operational forecasting; it performs static algebraic reconstruction or nowcasting.
+where $\mathcal{P} = \{PM_{2.5}, PM_{10}, NO_2, SO_2, CO, O_3, NH_3\}$ is the set of monitored criteria pollutants, $C_{p,t}$ is the 24-hour mean concentration of pollutant $p$ on calendar day $t$, and $I_p(C_{p,t})$ is the piecewise-linear sub-index conversion function specified by Indian regulatory guidelines. Numerous applied studies train models where concurrent pollutant concentrations $\{C_{p,t}\}_{p \in \mathcal{P}}$ serve as independent input features to predict that same day's aggregate index $\text{AQI}_t$ \cite{sharma2020,gulia2015}. Because same-day pollutant concentrations cannot be observed hours or days in advance, this configuration does not represent operational forecasting; it performs static algebraic reconstruction or nowcasting.
 
-\paragraph{2. Random-Split Autocorrelation Leakage.}
+\paragraph{Random-Split Autocorrelation Leakage}
 Urban daily AQI series exhibit intense temporal persistence and first-order autocorrelation ($\rho_1 \approx 0.86$ in Ahmedabad). When datasets are partitioned using random train-test splitting (e.g., standard random 80/20 cross-validation), adjacent temporal observations ($t-1$ and $t+1$) invariably enter the training partition while day $t$ is placed in the test partition. Because adjacent days share nearly identical meteorological and atmospheric states, the model interpolates between proximal training points rather than projecting forward in time. This provides artificial predictive cues that collapse completely in deployment.
 
 Although the statistical perils of random splitting on autocorrelated series have been examined in econometrics and theoretical machine learning \cite{bergmeir2012,cerqueira2020,kaufman2012}, their practical distortion within Indian environmental science has not been systematically audited. Furthermore, published studies rarely evaluate simple heuristic benchmarks -- such as the naive Persistence forecaster ($\hat{y}_{t+1} = y_t$) -- or conduct formal statistical hypothesis testing (e.g., the Diebold-Mariano test \cite{diebold1995}) to establish whether machine learning models provide statistically verifiable skill over naive inertia.
@@ -125,21 +125,21 @@ The remainder of this article is organized as follows: Section~\ref{sec:related}
 \subsection{Machine Learning for Air Quality Modeling in India}
 The application of predictive algorithms to air pollution across Indian metropolitan centres has expanded rapidly. Early studies focused primarily on classical statistical techniques, including autoregressive integrated moving average (ARIMA) models and multiple linear regression applied to Delhi monitoring networks \cite{gulia2015}. With the public dissemination of continuous ambient air quality monitoring station (CAAQMS) records by the CPCB, researchers transitioned to nonlinear machine learning algorithms.
 
-\citet{sharma2020} applied Random Forest and Extreme Learning Machine algorithms to daily AQI projections across 15 Indian cities, reporting $R^2$ scores exceeding $0.90$ and attributing success to algorithmic complexity. \citet{chauhan2021} applied Random Forest, Support Vector Regression, and deep neural networks to Jaipur, claiming superior predictive capacity over baseline techniques. Analogous studies for Lucknow \cite{srivastava2022} and Hyderabad \cite{rao2021} reported near-zero forecasting errors with tree-based ensembles.
+Sharma et al.~\cite{sharma2020} applied Random Forest and Extreme Learning Machine algorithms to daily AQI projections across 15 Indian cities, reporting $R^2$ scores exceeding $0.90$ and attributing success to algorithmic complexity. Chauhan and Bhardwaj~\cite{chauhan2021} applied Random Forest, Support Vector Regression, and deep neural networks to Jaipur, claiming superior predictive capacity over baseline techniques. Analogous studies by Srivastava et al.~\cite{srivastava2022} for Lucknow and Rao and Reddy~\cite{rao2021} for Hyderabad reported near-zero forecasting errors with tree-based ensembles.
 
 Crucially, close methodological examination reveals that the overwhelming majority of these regional studies suffer from one or both leakage mechanisms described in Section~\ref{sec:intro}. Many incorporate concurrent chemical species as independent predictors of same-day aggregate AQI, effectively testing whether a machine learning model can approximate the known piecewise-linear CPCB maximum operator. When multi-step or next-day horizons are nominally targeted, temporal partitioning is frequently bypassed in favour of random $k$-fold cross-validation or unconstrained random sampling.
 
 \subsection{Temporal Data Leakage and Validation Protocols}
 Data leakage occurs when training data inadvertently incorporates information that would be unavailable at inference time, inducing severe optimistic bias \cite{kaufman2012}. In temporal and spatial machine learning, leakage typically arises through lookahead bias (conditioning on future events) or serial dependency exploitation \cite{bergmeir2012}.
 
-\citet{cerqueira2020} conducted an extensive comparative benchmark of performance estimation methodologies for time series, demonstrating that standard random $k$-fold cross-validation produces systematically over-optimistic performance estimates for autocorrelated data. They demonstrated that rolling-origin (prequential) and blocked temporal cross-validation yield error estimates that mirror real-world generalization. Recently, \citet{gorecki2023} audited environmental data science benchmarks, finding that temporal leakage is particularly prevalent in atmospheric research, where strong diurnal, weekly, and seasonal cycles allow models to exploit temporal interpolation cues.
+Cerqueira et al.~\cite{cerqueira2020} conducted an extensive comparative benchmark of performance estimation methodologies for time series, demonstrating that standard random $k$-fold cross-validation produces systematically over-optimistic performance estimates for autocorrelated data. They demonstrated that rolling-origin (prequential) and blocked temporal cross-validation yield error estimates that mirror real-world generalization. Recently, G{\'o}recki et al.~\cite{gorecki2023} audited environmental data science benchmarks, finding that temporal leakage is particularly prevalent in atmospheric research, where strong diurnal, weekly, and seasonal cycles allow models to exploit temporal interpolation cues.
 
 \subsection{Persistence Benchmarking and the Forecast Skill Metric}
 A fundamental principle of meteorological forecast verification is that any proposed prognostic model must be evaluated against standard climatological and persistence benchmarks \cite{murphy1992,myhre2016}. In strongly autocorrelated processes, the naive Persistence forecaster ($\hat{y}_{t+h} = y_t$) represents a formidable obstacle, particularly at short forecast horizons ($h=1$).
 
-In international air quality research, \citet{zaini2022} demonstrated that Persistence frequently outperforms sophisticated deep neural networks for next-day $PM_{2.5}$ forecasting in urban Malaysia. Similarly, atmospheric verification manuals published by the World Meteorological Organization (WMO) require reporting relative skill scores:
+In international air quality research, Zaini et al.~\cite{zaini2022} demonstrated that Persistence frequently outperforms sophisticated deep neural networks for next-day $PM_{2.5}$ forecasting in urban Malaysia. Similarly, atmospheric verification manuals published by the World Meteorological Organization (WMO) require reporting relative skill scores:
 \begin{equation}
-  \text{Skill} = 1 - \frac{\text{MAE}_{\text{model}}}{\text{MAE}_{\text{persistence}}},
+  \text{Skill} = 1 - \frac{\text{MAE}_{\text{model}}}{\text{MAE}_{\text{persistence}}}
   \label{eq:skill_def}
 \end{equation}
 where positive values signify genuine predictive value beyond inertial extrapolation. In Indian environmental machine learning literature, persistence benchmarks are rarely included, and formal statistical hypothesis tests -- such as the Diebold-Mariano test \cite{diebold1995} -- are almost never employed to evaluate whether reported performance gains exceed sampling variation.
@@ -169,7 +169,7 @@ The raw municipal series were standardised and processed through rigorous qualit
   \item \textbf{Continuous Calendar Reindexing:} All city time series were reindexed to a continuous daily calendar. Missing observations in the target variable $\yt$ were recorded as unobserved; they were strictly excluded from loss computation and were never synthetically interpolated.
   \item \textbf{Strict Pre-Split Feature Imputation:} To guarantee zero lookahead bias, missing input feature values were imputed using training-partition medians only. Imputation statistics were calculated strictly on the training partition and subsequently applied to test observations.
 \end{itemize}
-All validated datasets are archived in binary Parquet format with cryptographic SHA-256 hashes registered in \texttt{data/raw/MANIFEST.csv}.
+All validated datasets are archived in binary Parquet format with cryptographic SHA-256 integrity checksums registered in the project manifest.
 
 %% ════════════════════════════════════════════════════════════════════════════
 \section{Methodology}
@@ -217,12 +217,12 @@ Primary predictive accuracy is measured using Mean Absolute Error (MAE), supplem
 
 To test whether model improvements over Persistence are statistically significant, we deploy the two-tailed \textbf{Diebold-Mariano (DM) test} \cite{diebold1995}. Let $e_{1,t} = y_{t+h} - \hat{y}_{1,t+h}$ denote the error of the Persistence baseline, and let $e_{2,t} = y_{t+h} - \hat{y}_{2,t+h}$ denote the error of the candidate model. The loss differential under absolute loss is:
 \begin{equation}
-  d_t = |e_{1,t}| - |e_{2,t}|.
+  d_t = |e_{1,t}| - |e_{2,t}|
   \label{eq:dm_diff}
 \end{equation}
 The DM test statistic is:
 \begin{equation}
-  \text{DM} = \frac{\bar{d}}{\sqrt{\hat{V}(\bar{d})}},
+  \text{DM} = \frac{\bar{d}}{\sqrt{\hat{V}(\bar{d})}}
   \label{eq:dm_stat}
 \end{equation}
 where $\bar{d} = \frac{1}{T}\sum_{t=1}^T d_t$, and $\hat{V}(\bar{d})$ is the heteroskedasticity- and autocorrelation-consistent (HAC) Newey-West variance estimator with lag truncation bandwidth $k = h - 1$. Under the null hypothesis of equal forecast accuracy ($H_0: E[d_t] = 0$), the statistic converges to a standard normal distribution, $\text{DM} \sim \mathcal{N}(0, 1)$. Two-tailed $p$-values below $0.05$ indicate statistically significant differences in predictive accuracy.
@@ -240,7 +240,7 @@ Table~\ref{tab:leakage_inflation} presents model performance in Ahmedabad across
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.88\textwidth]{../results/figures/fig1_leakage_inflation.pdf}
-  \caption{Empirical leakage inflation in Ahmedabad: $R^2$ (left) and MAE (right) across Setups~A, B, and C. The collapse between Setup~A and Setup~B exposes the severe distortion introduced by random train-test splitting on autocorrelated series.}
+  \caption{Leakage inflation in Ahmedabad across Setups~A, B, and C for $R^2$ (left) and MAE (right). Chronological splitting eliminates autocorrelation leakage; Setup~C isolates true forward forecasting error.}
   \label{fig:leakage_inflation}
 \end{figure}
 
@@ -257,12 +257,12 @@ Table~\ref{tab:main_benchmark_h1} documents next-day forecasting performance und
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.88\textwidth]{../results/figures/fig2_model_comparison_h1.pdf}
-  \caption{Next-day ($h=1$) MAE across candidate models under Setup~C with 95\% stationary block-bootstrap confidence intervals. Dashed horizontal lines indicate the Persistence baseline.}
+  \caption{Next-day ($h=1$) MAE across models and cities under Setup~C. All models fail to surpass Persistence except in coastal Chennai.}
   \label{fig:model_comparison}
 \end{figure}
 
 \paragraph{Ahmedabad.}
-The naive Persistence baseline achieved an MAE of \textbf{20.21} ($R^2 = 0.462$). While the 7-day Moving Average achieved an MAE of \textbf{20.01} ($+1.0\%$ skill), this difference was statistically indistinguishable from zero ($p = 0.766$ via Diebold-Mariano). Crucially, every machine learning model yielded \emph{negative skill scores} relative to Persistence: Random Forest attained $\text{MAE} = 20.73$ ($\text{Skill} = -0.026, p = 0.510$), Ridge attained $\text{MAE} = 20.83$ ($\text{Skill} = -0.031, p = 0.402$), and XGBoost attained $\text{MAE} = 20.91$ ($\text{Skill} = -0.034, p = 0.419$). In statistical terms, no machine learning model outperformed simple persistence.
+The naive Persistence baseline achieved an MAE of \textbf{20.21} ($R^2 = 0.462$). While the 7-day Moving Average achieved an MAE of \textbf{20.01} ($+1.0\%$ skill), this difference was statistically indistinguishable from zero ($p = 0.766$ via Diebold-Mariano). Crucially, every evaluated machine learning model (Random Forest, XGBoost, and Ridge Regression) yielded negative skill scores relative to Persistence: Random Forest attained $\text{MAE} = 20.73$ ($\text{Skill} = -0.026, p = 0.510$), Ridge attained $\text{MAE} = 20.83$ ($\text{Skill} = -0.031, p = 0.402$), and XGBoost attained $\text{MAE} = 20.91$ ($\text{Skill} = -0.034, p = 0.419$). Under the frequentist Diebold-Mariano test with Newey-West HAC covariance estimation ($p > 0.40$), none of the machine learning forecasters statistically significantly outperformed the naive Persistence baseline.
 
 \paragraph{Chennai.}
 Chennai exhibited a fundamentally different atmospheric regime. In this coastal metropolis, maritime boundary layer circulation and diurnal sea-breeze reversals weaken day-to-day AQI inertia ($\text{Persistence } R^2 = -0.034, \text{MAE} = 17.90$). Here, machine learning models established clear, statistically significant predictive skill: Random Forest reduced MAE to \textbf{15.84} ($+11.5\%$ skill, $p = 0.002$), XGBoost achieved $\text{MAE} = 16.11$ ($+10.0\%$ skill, $p = 0.001$), and Ridge attained $\text{MAE} = 16.18$ ($+9.6\%$ skill, $p = 0.010$).
@@ -289,14 +289,14 @@ Table~\ref{tab:horizon_degradation} documents error growth as the forecast lead 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.88\textwidth]{../results/figures/fig3_forecast_trajectory.pdf}
-  \caption{Observed and predicted AQI trajectories across the Setup~C test period in Ahmedabad for next-day ($h=1$, left) and three-day ahead ($h=3$, right) lead times.}
+  \caption{Next-day predicted versus observed AQI trajectories for Ahmedabad over a 90-day operational test window under Setup~C.}
   \label{fig:forecast_trajectory}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.88\textwidth]{../results/figures/fig5_horizon_decay.pdf}
-  \caption{Error growth and horizon degradation from $h=1$ to $h=3$ across cities and models under Setup~C. Persistence error increases substantially faster than regularised linear or moving-average models.}
+  \caption{Horizon degradation from $h=1$ to $h=3$ across cities under Setup~C. Persistence error increases faster than multi-lag linear and moving-average models.}
   \label{fig:horizon_decay}
 \end{figure}
 
@@ -311,7 +311,7 @@ Figure~\ref{fig:diebold_mariano} presents a comprehensive heatmap of Diebold-Mar
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.88\textwidth]{../results/figures/fig4_diebold_mariano.pdf}
-  \caption{Heatmap of Diebold-Mariano test $p$-values comparing each candidate forecaster against Persistence under Setup~C. Green cells denote statistically significant model superiority ($p < 0.05$); red cells denote statistically significant Persistence superiority.}
+  \caption{Diebold-Mariano test $p$-values comparing candidate forecasters to Persistence under Setup~C ($h=1$). Green indicates significant model superiority ($p < 0.05$); dark blue indicates Persistence dominance.}
   \label{fig:diebold_mariano}
 \end{figure}
 
@@ -364,13 +364,7 @@ These findings demonstrate that future research claiming algorithmic superiority
 The author acknowledges the Central Pollution Control Board (CPCB), Ministry of Environment, Forest and Climate Change, Government of India, for maintaining the public air quality monitoring network and making municipal bulletin records publicly accessible.
 
 \section*{Reproducibility Statement}
-The entire experimental pipeline is designed for full, single-command reproduction. Source code, configuration files, cleaned datasets, and pre-computed prediction ledgers are maintained at: \url{https://github.com/example/aqi-gujarat-leakage}. The full suite of 138 experimental runs and camera-ready figures/tables can be reproduced via:
-\begin{verbatim}
-  $env:PYTHONPATH="src"
-  python -m aqi.cli run-all
-  python src/aqi/reporting/tables.py
-  python src/aqi/reporting/figures.py
-\end{verbatim}
+The entire experimental pipeline is designed for full, single-command reproduction. Source code, configuration files, cleaned datasets, and pre-computed prediction ledgers are openly accessible at: \url{https://github.com/Pratham1227-beep/aqi-gujarat-leakage}. Complete execution commands, dependencies, and reproduction instructions are provided in the repository README.
 
 %% ════════════════════════════════════════════════════════════════════════════
 %% References (IEEE / Numeric Style)
@@ -379,10 +373,10 @@ The entire experimental pipeline is designed for full, single-command reproducti
 \small
 
 \bibitem{lancet2019}
-Lancet Commission on Pollution and Health, ``Pollution and health: A progress update,'' \emph{The Lancet Planetary Health}, vol.~3, no.~1, pp.~e41--e92, 2019.
+K.~Balakrishnan et al., ``The impact of air pollution on deaths, disease burden, and life expectancy across the states of India: The Global Burden of Disease Study 2017,'' \emph{The Lancet Planetary Health}, vol.~3, no.~1, pp.~e26--e39, 2019.
 
 \bibitem{gulia2015}
-S.~Gulia, S.~M.~Nagendra, M.~Khare, and I.~Khanna, ``Urban air quality management -- a review,'' \emph{Atmospheric Pollution Research}, vol.~6, no.~2, pp.~286--304, 2015.
+S.~Gulia, S.~M.~Shiva Nagendra, M.~Khare, and I.~Khanna, ``Urban air quality management -- a review,'' \emph{Atmospheric Pollution Research}, vol.~6, no.~2, pp.~286--304, 2015.
 
 \bibitem{sharma2020}
 E.~Sharma, R.~C.~Deo, R.~Prasad, and A.~V.~Parisi, ``A hybrid air quality early-warning framework: An hourly forecasting model with online sequential extreme learning machines and empirical mode decomposition algorithms,'' \emph{Science of The Total Environment}, vol.~709, p.~135934, 2020.
@@ -415,7 +409,7 @@ A.~H.~Murphy, ``Skill scores based on the mean square error and their relationsh
 G.~Myhre, C.~E.~L.~Myhre, B.~H.~Samset, and T.~Storelvmo, ``Aerosols and their relation to global climate and the cryosphere,'' \emph{Nature Climate Change}, vol.~6, no.~7, pp.~668--674, 2016.
 
 \bibitem{zaini2022}
-N.~Zaini, L.~W.~Ean, A.~N.~Ahmed, M.~Abdul Malek, and M.~F.~Chow, ``PM2.5 forecasting for an urban area based on deep learning and decomposition method,'' \emph{Scientific Reports}, vol.~12, no.~1, pp.~1--17, 2022.
+N.~Zaini, L.~W.~Ean, A.~N.~Ahmed, M.~Abdul Malek, and M.~F.~Chow, ``A novel approach of air quality index prediction using machine learning,'' \emph{Scientific Reports}, vol.~12, no.~1, p.~19283, 2022.
 
 \bibitem{diebold1995}
 F.~X.~Diebold and R.~S.~Mariano, ``Comparing predictive accuracy,'' \emph{Journal of Business \& Economic Statistics}, vol.~13, no.~3, pp.~253--263, 1995.

@@ -1,0 +1,61 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Documentation Overview" activeSlug="">
+  <h1>Air Quality Index (AQI) Forecasting in Gujarat</h1>
+  <p>
+    An empirical investigation into whether machine learning models beat a simple persistence baseline
+    for next-day air quality forecasting in Gujarat cities under leak-free rolling-origin evaluation,
+    and how much random train-test splitting and concurrent pollutant inputs inflate performance in earlier Indian literature.
+  </p>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin: 2rem 0;">
+    <a href={`${baseUrl}/protocol/`} style="display: block; padding: 1.5rem; background: var(--md-surface); border-radius: 12px; color: inherit; text-decoration: none;">
+      <h3 style="margin-top: 0; color: var(--md-on-surface); font-size: 1.1rem;">Experimental Protocol</h3>
+      <p style="margin-bottom: 0; font-size: 0.875rem; color: var(--md-on-surface-variant);">
+        Frozen evaluation protocol, temporal split definitions (Setup A, B, C), and leakage guard specifications.
+      </p>
+    </a>
+
+    <a href={`${baseUrl}/data_availability/`} style="display: block; padding: 1.5rem; background: var(--md-surface); border-radius: 12px; color: inherit; text-decoration: none;">
+      <h3 style="margin-top: 0; color: var(--md-on-surface); font-size: 1.1rem;">Data Availability Audit</h3>
+      <p style="margin-bottom: 0; font-size: 0.875rem; color: var(--md-on-surface-variant);">
+        Coverage analysis across Gujarat cities and stations, qualification criteria, and missing-data auditing.
+      </p>
+    </a>
+
+    <a href={`${baseUrl}/cpcb_breakpoints/`} style="display: block; padding: 1.5rem; background: var(--md-surface); border-radius: 12px; color: inherit; text-decoration: none;">
+      <h3 style="margin-top: 0; color: var(--md-on-surface); font-size: 1.1rem;">CPCB Breakpoints Reference</h3>
+      <p style="margin-bottom: 0; font-size: 0.875rem; color: var(--md-on-surface-variant);">
+        Official Central Pollution Control Board (CPCB) breakpoint tables and sub-index formulas for 8 pollutants.
+      </p>
+    </a>
+
+    <a href={`${baseUrl}/decisions/`} style="display: block; padding: 1.5rem; background: var(--md-surface); border-radius: 12px; color: inherit; text-decoration: none;">
+      <h3 style="margin-top: 0; color: var(--md-on-surface); font-size: 1.1rem;">Decisions Log</h3>
+      <p style="margin-bottom: 0; font-size: 0.875rem; color: var(--md-on-surface-variant);">
+        Architectural Decision Records (ADRs) tracking modeling choices, feature sets, and statistical tests.
+      </p>
+    </a>
+
+    <a href={`${baseUrl}/paper_outline/`} style="display: block; padding: 1.5rem; background: var(--md-surface); border-radius: 12px; color: inherit; text-decoration: none;">
+      <h3 style="margin-top: 0; color: var(--md-on-surface); font-size: 1.1rem;">Manuscript Outline</h3>
+      <p style="margin-bottom: 0; font-size: 0.875rem; color: var(--md-on-surface-variant);">
+        Paper structure, section scopes, and mapping of research questions to empirical results.
+      </p>
+    </a>
+  </div>
+
+  <h2>Core Benchmark Findings</h2>
+  <ul>
+    <li>
+      <strong>Leakage Inflation Myth:</strong> In Ahmedabad, Random Forest achieves an R² of 0.815 under random 80/20 splitting (Setup A). When evaluated chronologically on the exact same data (Setup B), performance collapses to 0.015 (a 98% collapse).
+    </li>
+    <li>
+      <strong>Persistence Barrier:</strong> In Gujarat industrial cities (Vapi, Ahmedabad, Gandhinagar, Surat), standard machine learning models do not meaningfully outperform a simple 1-day persistence baseline under leak-free evaluation. In Vapi, persistence is statistically superior to ML.
+    </li>
+  </ul>
+</Layout>

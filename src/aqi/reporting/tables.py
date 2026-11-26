@@ -54,7 +54,7 @@ def generate_table2_main(df: pd.DataFrame, out_dir: Path) -> None:
             dm_str += "$^*$"
         table_rows.append({
             "City": r["city"].capitalize(),
-            "Model": r["model"].replace("_", " ").title(),
+            "Model": r["model"].replace("_", " ").title().replace("Xgboost", "XGBoost"),
             "MAE": f"{r['mae']:.2f}",
             "RMSE": f"{r['rmse']:.2f}",
             "R2": f"{r['r2']:.3f}",
@@ -67,7 +67,7 @@ def generate_table2_main(df: pd.DataFrame, out_dir: Path) -> None:
     
     tex = res_df.to_latex(
         index=False,
-        caption="Setup C Next-Day ($t+1$) Forecasting Benchmark vs Persistence Baseline",
+        caption="Setup C Next-Day ($t+1$) Forecasting Benchmark vs Persistence Baseline. \\textit{Note:} Skill score denotes normalized MAE improvement over Persistence ($1 - \\text{MAE}_{\\text{model}}/\\text{MAE}_{\\text{persistence}}$); DM $p$-value evaluates significance vs Persistence.",
         label="tab:main_benchmark_h1",
         column_format="llcccccc",
         escape=False,
@@ -95,7 +95,7 @@ def generate_table3_inflation(df: pd.DataFrame, out_dir: Path) -> None:
         r"\toprule",
         r" & \multicolumn{2}{c}{\textbf{Setup A (Random)}} & \multicolumn{2}{c}{\textbf{Setup B (Chrono)}} & \multicolumn{2}{c}{\textbf{Setup C (Rolling)}} & \\",
         r"\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}",
-        r"\textbf{Model} & \textbf{MAE} & $\mathbf{R^2}$ & \textbf{MAE} & $\mathbf{R^2}$ & \textbf{MAE} & $\mathbf{R^2}$ & $\mathbf{\Delta R^2 \text{ (A$-$B)}}$ \\",
+        r"\textbf{Model} & \textbf{MAE} & $\mathbf{R^2}$ & \textbf{MAE} & $\mathbf{R^2}$ & \textbf{MAE} & $\mathbf{R^2}$ & $\Delta R^2 \text{ (A$-$B)}$ \\",
         r"\midrule",
     ]
     for m in models:
@@ -103,7 +103,7 @@ def generate_table3_inflation(df: pd.DataFrame, out_dir: Path) -> None:
         r_b = ahm_b[ahm_b["model"] == m].iloc[0] if len(ahm_b[ahm_b["model"] == m]) else None
         r_c = ahm_c[ahm_c["model"] == m].iloc[0] if len(ahm_c[ahm_c["model"] == m]) else None
         
-        name = m.replace("_", " ").title()
+        name = m.replace("_", " ").title().replace("Xgboost", "XGBoost")
         mae_a = f"{r_a['mae']:.2f}" if r_a is not None else "--"
         r2_a = f"{r_a['r2']:.3f}" if r_a is not None else "--"
         mae_b = f"{r_b['mae']:.2f}" if r_b is not None else "--"
@@ -133,19 +133,20 @@ def generate_table4_multicity(df: pd.DataFrame, out_dir: Path) -> None:
     
     summary = sub.groupby(["city", "model"])[["mae", "rmse", "r2", "skill", "dm_p"]].first().reset_index()
     summary["city"] = summary["city"].str.capitalize()
-    summary["model"] = summary["model"].str.replace("_", " ").str.title()
+    summary["model"] = summary["model"].str.replace("_", " ").str.title().str.replace("Xgboost", "XGBoost")
     summary.to_csv(out_dir / "table4_multicity.csv", index=False)
 
     # Pivot table: MAE per city and model
     pivot_mae = sub.pivot(index="city", columns="model", values="mae").round(2)
     pivot_mae.index = pivot_mae.index.str.capitalize()
     pivot_mae.index.name = "City"
-    pivot_mae.columns = [c.replace("_", " ").title() for c in pivot_mae.columns]
+    pivot_mae.columns = [c.replace("_", " ").title().replace("Xgboost", "XGBoost") for c in pivot_mae.columns]
     pivot_mae.columns.name = None
     
     tex = pivot_mae.to_latex(
         caption="Cross-City Comparison of MAE under Setup C ($h=1$ Next-Day Forecast)",
         label="tab:cross_city_mae",
+        float_format="%.2f",
         escape=False,
     )
     tex = tex.replace("\\begin{table}\n", "\\begin{table}[htbp]\n\\centering\n")
@@ -161,7 +162,7 @@ def generate_table5_horizons(df: pd.DataFrame, out_dir: Path) -> None:
     sub = sub.drop_duplicates(subset=["city", "model", "horizon"], keep="last")
     pivot = sub.pivot(index=["city", "model"], columns="horizon", values="mae").round(2).reset_index()
     pivot["city"] = pivot["city"].str.capitalize()
-    pivot["model"] = pivot["model"].str.replace("_", " ").str.title()
+    pivot["model"] = pivot["model"].str.replace("_", " ").str.title().str.replace("Xgboost", "XGBoost")
     pivot = pivot.rename(columns={1: "MAE (h=1)", 3: "MAE (h=3)"})
     pivot["Degradation (\\%)"] = ((pivot["MAE (h=3)"] - pivot["MAE (h=1)"]) / pivot["MAE (h=1)"] * 100).round(1)
     
@@ -171,6 +172,7 @@ def generate_table5_horizons(df: pd.DataFrame, out_dir: Path) -> None:
         caption="Forecast Horizon Degradation: Error Growth from Next-Day ($h=1$) to 3-Day ($h=3$) Lead Times",
         label="tab:horizon_degradation",
         column_format="llccc",
+        float_format="%.2f",
         escape=False,
     )
     tex = tex.replace("\\begin{table}\n", "\\begin{table}[htbp]\n\\centering\n")
