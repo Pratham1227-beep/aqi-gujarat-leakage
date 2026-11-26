@@ -54,5 +54,5 @@ The DM test statistic is:
   \text{DM} = \frac{\bar{d}}{\sqrt{\hat{V}(\bar{d})}}
   \label{eq:dm_stat}
 \end{equation}
-where $\bar{d} = \frac{1}{T}\sum_{t=1}^T d_t$, and $\hat{V}(\bar{d})$ is the heteroskedasticity- and autocorrelation-consistent (HAC) Newey-West variance estimator with lag truncation bandwidth $k = h - 1$. Under the null hypothesis of equal forecast accuracy ($H_0: E[d_t] = 0$), the statistic converges to a standard normal distribution, $\text{DM} \sim \mathcal{N}(0, 1)$. Two-tailed $p$-values below $0.05$ indicate statistically significant differences in predictive accuracy.
+where $\bar{d} = \frac{1}{T}\sum_{t=1}^T d_t$, and $\hat{V}(\bar{d})$ is the heteroskedasticity- and autocorrelation-consistent (HAC) Newey-West variance estimator with lag truncation bandwidth $k = h - 1$. At $h=1$, $k=0$ and no autocorrelation correction is applied to the variance; the DM test reduces to a standard $t$-test on the loss differentials. At $h=3$, $k=2$ lags are included, providing correction for the serial dependence induced by overlapping multi-step forecast errors. Under the null hypothesis of equal forecast accuracy ($H_0: E[d_t] = 0$), the statistic converges to a standard normal distribution, $\text{DM} \sim \mathcal{N}(0, 1)$. Two-tailed $p$-values below $0.05$ indicate statistically significant differences in predictive accuracy.
 
