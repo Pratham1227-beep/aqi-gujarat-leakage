@@ -3,7 +3,7 @@
 \label{sec:method}
 
 \subsection{Experimental Setups}
-To decouple the components of predictive performance and quantify artificial inflation, we define three nested experimental configurations executed over identical data partitions:
+To decouple the components of predictive performance and quantify artificial inflation, we define three nested experimental configurations executed over municipal series (with Setups~A and B restricted to valid-PM$_{2.5}$ days, and Setup~C evaluated over the full valid-AQI record as well as a like-for-like 230-day sensitivity check on Setup~B's window):
 
 \begin{description}
   \item[Setup A (Random Split, Concurrent Inputs):] Features consist of concurrent same-day criteria pollutant concentrations $\{PM_{2.5,t}, PM_{10,t}, NO_{2,t}, SO_{2,t}, CO_t, O_{3,t}, NH_{3,t}\}$ and calendar harmonic encodings. Training and test samples are randomly partitioned via an 80/20 ratio across 10 independent random seeds. This mirrors the prevailing setup in published literature and captures the combined effect of concurrent input leakage and autocorrelation leakage.

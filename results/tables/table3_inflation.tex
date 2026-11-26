@@ -1,0 +1,23 @@
+\begin{table}[htbp]
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l cccccc c}
+\toprule
+ & \multicolumn{2}{c}{\textbf{Setup A (Random)}} & \multicolumn{2}{c}{\textbf{Setup B (Chrono)}} & \multicolumn{2}{c}{\textbf{Setup C (Rolling)}} & \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+\textbf{Model} & \textbf{MAE} & $\mathbf{R^2}$ & \textbf{MAE} & $\mathbf{R^2}$ & \textbf{MAE} & $\mathbf{R^2}$ & $\Delta R^2 \text{ (A$-$B)}$ \\
+\midrule
+Ridge (full windows) & 24.99 & 0.715 & 30.07 & 0.166 & 20.83 & 0.520 & +0.548 \\
+Random Forest (full windows) & 18.50 & 0.815 & 30.49 & 0.015 & 20.73 & 0.505 & +0.800 \\
+XGBoost (full windows) & 19.12 & 0.814 & 26.34 & 0.386 & 20.91 & 0.493 & +0.428 \\
+\midrule
+\multicolumn{8}{l}{\textit{Lockdown-excluded (excl.\ 89 Mar--May 2020 days) \& like-for-like Setup C (on Setup B's 230-day window):}} \\
+Ridge (excl.\ lockdown / 230d C) & 22.09 & 0.776 & 22.01 & 0.665 & 41.77 & -0.111 & +0.111 \\
+Random Forest (excl.\ lockdown / 230d C) & 17.61 & 0.829 & 18.01 & 0.747 & 37.78 & 0.120 & +0.082 \\
+XGBoost (excl.\ lockdown / 230d C) & 17.99 & 0.833 & 19.74 & 0.731 & 38.65 & 0.111 & +0.102 \\
+\bottomrule
+\end{tabular}
+}
+\caption{Empirical Leakage Inflation in Ahmedabad: Setup A (Random) vs Setup B (Chrono) vs Setup C (Rolling-Origin). Top rows show primary full windows (Setup A/B $n_{\text{test}}=230$; Setup C $n_{\text{test}}=507$). Bottom rows show Setup A ($n=1{,}060$) and Setup B ($n_{\text{test}}=141$) excluding the 89 March--May 2020 COVID-19 lockdown days, and Setup C evaluated on Setup B's exact 230-day window (2019-10-24 to 2020-07-01, where Persistence MAE $= 33.31$).}
+\label{tab:leakage_inflation}
+\end{table}
