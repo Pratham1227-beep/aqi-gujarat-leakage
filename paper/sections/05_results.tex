@@ -28,7 +28,7 @@ Table~\ref{tab:main_benchmark_h1} documents next-day forecasting performance und
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.88\textwidth]{../results/figures/fig2_model_comparison_h1.pdf}
-  \caption{Next-day ($h=1$) MAE across models and cities under Setup~C. All models fail to surpass Persistence except in coastal Chennai.}
+  \caption{Next-day ($h=1$) MAE across models and cities under Setup~C. All models fail to significantly surpass Persistence except in coastal Chennai.}
   \label{fig:model_comparison}
 \end{figure}
 
@@ -47,7 +47,7 @@ Table~\ref{tab:cross_city_mae} expands the leak-free Setup~C next-day benchmark 
 Cross-city analysis reveals three distinct operational regimes:
 \begin{enumerate}
   \item \textbf{Persistence Dominance (Ahmedabad, Gandhinagar):} In urban continental Gujarat, high day-to-day autocorrelation ($\rho_1 > 0.80$) renders yesterday's AQI a near-optimal predictor. In Gandhinagar, Ridge Regression achieved $\text{MAE} = 23.43$ versus Persistence $\text{MAE} = 23.88$ ($p = 0.590$); Random Forest and XGBoost performed worse than Persistence ($p = 0.143$ and $p = 0.539$).
-  \item \textbf{Persistence Superiority (Vapi):} In the chemical industrial corridor of Vapi, Persistence ($\text{MAE} = \mathbf{18.98}, R^2 = 0.813$) was \emph{statistically significantly superior} to both Random Forest ($\text{MAE} = 25.02, p < 0.001$) and XGBoost ($\text{MAE} = 25.13, p = 0.001$). Highly episodic, localized industrial emissions create abrupt spikes; tree ensembles overfit to these transient shocks during training, causing severe over-prediction errors on subsequent standard days.
+  \item \textbf{Persistence Superiority (Vapi):} In the chemical industrial corridor of Vapi, Persistence ($\text{MAE} = \mathbf{18.98}, R^2 = 0.813$) was \emph{statistically significantly superior} to both Random Forest ($\text{MAE} = 25.02, p = 7.9 \times 10^{-5}$) and XGBoost ($\text{MAE} = 25.13, p = 0.001$), and to Ridge Regression ($\text{MAE} = 24.37, p = 0.003$). Persistence is thus superior to all complex models in Vapi ($p \leq 0.003$). Highly episodic, localized industrial emissions create abrupt spikes; tree ensembles overfit to these transient shocks during training, causing severe over-prediction errors on subsequent standard days.
   \item \textbf{Marginal or Data-Limited Utility (Ankleshwar, Surat):} In Ankleshwar, the 7-day Moving Average achieved a marginal advantage over Persistence ($\text{MAE} = 30.76$ vs. $33.53, p = 0.048$). In Surat, where the monitoring record is short ($n = 327$ valid days), high variance prevented any model from achieving statistical significance at $h=1$ ($p \ge 0.236$).
 \end{enumerate}
 
@@ -71,7 +71,7 @@ Table~\ref{tab:horizon_degradation} documents error growth as the forecast lead 
   \label{fig:horizon_decay}
 \end{figure}
 
-As the forecast horizon extends to $h=3$, the predictive power of single-step persistence decays rapidly: in Gandhinagar, Persistence MAE degrades by $+29.6\%$ (from $23.88$ to $30.96$); in Vapi, it degrades by $+25.7\%$ (from $18.98$ to $23.86$). In contrast, multi-lag models and rolling averages degrade by only $5\%$ to $12\%$.
+As the forecast horizon extends to $h=3$, the predictive power of single-step persistence decays rapidly: in Gandhinagar, Persistence MAE degrades by $+29.6\%$ (from $23.88$ to $30.96$); in Vapi, it degrades by $+25.7\%$ (from $18.98$ to $23.86$). Naive baselines and linear models degrade by $5\%$ to $12\%$, while tree ensemble models (Random Forest, XGBoost) degrade more substantially, by $10\%$ to $25\%$ (e.g., Gandhinagar Random Forest $+24.9\%$, XGBoost $+23.7\%$; Gandhinagar Ridge $+19.0\%$; Chennai Random Forest $+14.2\%$).
 
 Consequently, machine learning models demonstrate genuine utility at extended lead times: in Gandhinagar at $h=3$, Ridge Regression achieved an MAE of \textbf{27.89} versus Persistence \textbf{30.96}, yielding a statistically significant $+9.9\%$ skill improvement ($p = 0.022$). Similarly, in Surat at $h=3$, Ridge achieved $\text{MAE} = \mathbf{44.05}$ versus Persistence \textbf{56.61} ($+22.2\%$ skill, $p = 0.024$). This indicates that while machine learning is largely redundant for next-day predictions in high-inertia inland regions, it provides verifiable value at multi-day lead times where autocorrelation has decayed.
 
@@ -86,5 +86,5 @@ The Diebold-Mariano $p$-values across all evaluated city, model, and horizon con
   \label{fig:diebold_mariano}
 \end{figure}
 
-Across 60 pairwise comparisons (6 cities $\times$ 5 candidate models $\times$ 2 horizons), only 9 configurations establish statistically significant differences ($p < 0.05$) in favour of the candidate model -- concentrated predominantly in coastal Chennai ($h=1$ and $h=3$) and extended-horizon forecasts in Gandhinagar and Surat ($h=3$). Conversely, 5 tests indicate that Persistence is \emph{statistically superior} to machine learning models (all occurring in Vapi). Applying a conservative Bonferroni correction for multiple hypothesis testing ($\alpha = 0.05 / 60 = 0.00083$), only the superior performance of tree models in Chennai and the superiority of Persistence in Vapi remain statistically significant.
+Across 60 pairwise comparisons (6 cities $\times$ 5 candidate models $\times$ 2 horizons), only 9 configurations establish statistically significant differences ($p < 0.05$) in favour of the candidate model -- concentrated predominantly in coastal Chennai ($h=1$ and $h=3$) and extended-horizon forecasts in Gandhinagar and Surat ($h=3$; full $h=3$ breakdown in Table~\ref{tab:horizon_degradation}). Conversely, Persistence is statistically superior to candidate models in multiple configurations. In Vapi, Persistence significantly outperforms all three ML models at $h=1$ (Ridge $p = 0.003$, XGBoost $p = 0.001$, Random Forest $p = 7.9 \times 10^{-5}$; $p \leq 0.003$ throughout). Beyond Vapi, Persistence also significantly beats naive baselines: it outperforms Seasonal Naive in Ahmedabad ($p = 9.3 \times 10^{-9}$), Chennai ($p = 2.5 \times 10^{-6}$), Gandhinagar ($p = 5.1 \times 10^{-11}$), and Ankleshwar ($p = 0.015$), and beats the 7-Day Moving Average in Gandhinagar ($p = 0.019$). Applying a conservative Bonferroni correction for multiple hypothesis testing ($\alpha = 0.05 / 60 = 0.00083$), the following configurations survive: at $h=1$, Vapi Random Forest ($p = 7.9 \times 10^{-5}$) and XGBoost ($p = 0.001$) where Persistence is superior; Chennai ML results at $h=1$ (RF $p = 0.002$, XGBoost $p = 0.001$, Ridge $p = 0.010$) do \emph{not} survive Bonferroni correction. At $h=3$, Chennai Ridge ($p = 0.0006$) and XGBoost ($p = 0.0002$) do survive, confirming genuine ML skill at multi-day horizons in coastal conditions.
 
